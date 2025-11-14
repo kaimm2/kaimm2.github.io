@@ -1,21 +1,78 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Website Preview</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; }
-
-    /* Hiển thị ảnh full màn hình */
-    body {
-      background: url('preview.png') no-repeat center center;
-      background-size: cover;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VN Obfuscator - Lua Code Protection</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Không cần nội dung gì -->
+    <div class="container">
+        <header>
+            <h1> VN Obfuscator</h1>
+            <p class="subtitle">just a Vn hub</p>
+        </header>
+
+        <div class="main-content">
+            <div class="panel input-panel">
+                <div class="panel-header">
+                    <h2> Code</h2>
+                    <div class="button-group">
+                        <label for="file-upload" class="btn btn-secondary">
+                            Upload file
+                            <input type="file" id="file-upload" accept=".lua" style="display: none;">
+                        </label>
+                        <button id="clear-input" class="btn btn-secondary"> Xóa</button>
+                    </div>
+                </div>
+                <textarea id="input-code" placeholder="Dán code Luau vào đây..."></textarea>
+            </div>
+
+            <div class="controls">
+                <div class="options">
+                    <h3>độ bảo mật</h3>
+                    <label>
+                        <input type="checkbox" id="control-flow" checked>
+                        <span>Control Flow Obfuscation</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="constant-encryption" checked>
+                        <span>Constant Encryption</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="enhanced-security" checked>
+                        <span>Enhanced Security</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="vm-integrity" checked>
+                        <span>VM Integrity Check</span>
+                    </label>
+                </div>
+                <button id="obfuscate-btn" class="btn btn-primary">
+                    Obfuscate
+                </button>
+            </div>
+
+            <div class="panel output-panel">
+                <div class="panel-header">
+                    <h2> Code obfuscate</h2>
+                    <div class="button-group">
+                        <button id="copy-output" class="btn btn-secondary" disabled>Copy</button>
+                        <button id="download-output" class="btn btn-secondary" disabled>Download</button>
+                    </div>
+                </div>
+                <textarea id="output-code" placeholder="Code obfuscate ở đây..." readonly></textarea>
+            </div>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <footer>
+            <p>VN Obfuscator Beta v1.0 | Powered by Mr cat</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
