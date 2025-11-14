@@ -3,23 +3,91 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tthanh Obfuscator - @yuto_robloxvn</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>Tthanh Obfuscator</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0c0c0c;
+            color: white;
+            backdrop-filter: blur(20px);
+        }
+
+        .wrapper {
+            width: 90%;
+            max-width: 850px;
+            margin: auto;
+            padding-top: 40px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 25px;
+            border-radius: 18px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.5);
+            backdrop-filter: blur(12px);
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            background: rgba(0,0,0,0.45);
+            border: none;
+            outline: none;
+            padding: 12px;
+            border-radius: 12px;
+            color: #00eaff;
+            font-size: 15px;
+            resize: vertical;
+        }
+
+        button {
+            margin-top: 15px;
+            width: 100%;
+            padding: 13px;
+            background: #00eaff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        button:hover {
+            background: #00b8cc;
+        }
+
+        .logo {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #00eaff;
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-white font-sans">
-    <div class="min-h-screen flex flex-col items-center justify-center p-6">
-        <h1 class="text-4xl font-bold mb-4">Tthanh Obfuscator</h1>
-        <p class="text-gray-300 mb-6">Level 3 Engine - sUNC 90%</p>
+<body>
 
-        <textarea id="input" class="w-full max-w-2xl h-52 p-4 bg-gray-800 rounded-xl outline-none"></textarea>
+<div class="logo">Tthanh Hub</div>
 
-        <button id="run" class="mt-4 px-6 py-2 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
-            Obfuscate
-        </button>
-
-        <textarea id="output" class="w-full max-w-2xl h-52 p-4 bg-gray-800 rounded-xl outline-none mt-6"></textarea>
+<div class="wrapper">
+    <div class="card">
+        <h2>Level 4 Hybrid VM Obfuscator</h2>
+        <textarea id="input" placeholder="Paste your script here..."></textarea>
+        <button id="run">Obfuscate</button>
+        <textarea id="output" placeholder="Obfuscated script will appear here..."></textarea>
     </div>
+</div>
 
-    <script src="engine.js"></script>
+<script src="engine.js"></script>
 </body>
 </html>
