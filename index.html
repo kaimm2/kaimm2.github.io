@@ -81,10 +81,11 @@
 
     button#run {
       width: 100%;
-      patepim</button>
+      margin-top: 14px;
+      tungtungtungsahur</button>
 
   <div class="container fade-in glass">
-    <h2 class="neon">Obfuscator | tungtungsahur</h2>
+    <h2 class="neon">Obfuscator BETA</h2>
 
     <textarea id="input" placeholder="Nhập script vào đây..."></textarea>
     <button id="run">Obfuscate</button>
@@ -93,15 +94,13 @@
 
   <script src="engine.js"></script>
   <script>
-    const runBtn = document.getElementById("run");
-    const output = document.getElementById("output");
-    const input = document.getElementById("input");
-
-    runBtn.onclick = () => {
-        output.value = obfuscate(input.value);
+    // Run obfuscator
+    document.getElementById("run").onclick = () => {
+        const input = document.getElementById("input").value;
+        document.getElementById("output").value = obfuscate(input);
     };
 
-    // neon mode
+    // Neon/Dark mode
     const modeBtn = document.getElementById('modeBtn');
     let neon = true;
     modeBtn.onclick = () => {
