@@ -67,17 +67,26 @@
 
         .logo {
             position: fixed;
-            topTthanhhub</div>
+            top: 15px;
+            left: 15px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #00eaff;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-[#0e0e0e] text-white">
+    <div class="glass p-8 rounded-2xl w-full max-w-2xl fade-in">
+        <div class="flex items-center gap-3 mb-4">
+            <img src="logo.png" class="w-10 h-10 opacity-90" />
+            <h1 class="text-2xl font-bold">Tthanh Obfuscator - tiktok : @yuto_robloxvn</h1>
+        </div>
 
-<div class="wrapper">
-    <div class="card">
-        <h2>tung tung tung sahur!</h2>
-        <textarea id="input" placeholder="Paste your script here..."></textarea>
-        <button id="run">Obfuscate</button>
-        <textarea id="output" placeholder="Obfuscated script will appear here..."></textarea>
+        <textarea id="input" class="w-full h-40 p-3 rounded-xl bg-black/40 border border-white/10 focus:outline-none" placeholder="Nhập script..."></textarea>
+
+        <button id="run" class="mt-4 w-full py-3 rounded-xl bg-purple-600/70 hover:bg-purple-700/80 transition">Obfuscate</button>
+
+        <textarea id="output" class="w-full h-40 p-3 rounded-xl bg-black/40 border border-white/10 mt-4"></textarea>
     </div>
-</div>
-
-<script src="engine.js"></script>
 </body>
 </html>
