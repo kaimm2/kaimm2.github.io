@@ -113,7 +113,7 @@
   <button id="modeBtn">Neon Mode</button>
 
   <div class="container fade-in glass">
-    <h2 class="neon">Obfuscator BETA</h2>
+    <h2 class="neon">Obfuscator BETA by tthanhhub</h2>
 
     <textarea id="input" placeholder="Nhập script vào đây..."></textarea>
     <button id="run">Obfuscate</button>
@@ -122,13 +122,17 @@
 
   <script src="engine.js"></script>
   <script>
-    // Run obfuscator
     document.getElementById("run").onclick = () => {
         const input = document.getElementById("input").value;
-        document.getElementById("output").value = obfuscate(input);
+        if (typeof ultraObfuscate === "function") {
+            document.getElementById("output").value = ultraObfuscate(input);
+        } else if (typeof obfuscate === "function") {
+            document.getElementById("output").value = obfuscate(input);
+        } else {
+            document.getElementById("output").value = "[ENGINE ERROR] Không tìm thấy hàm obfuscate() hoặc ultraObfuscate()";
+        }
     };
 
-    // Neon/Dark mode
     const modeBtn = document.getElementById('modeBtn');
     let neon = true;
     modeBtn.onclick = () => {
