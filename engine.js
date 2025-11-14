@@ -1,5 +1,6 @@
-// Tthanh Obfuscator Engine - Level 3 (sUNC ~90%)
+// engine.js - Tthanh Obfuscator Level 4 (Hybrid VM)
 
+// Random string generator
 function randomString(len) {
     let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let out = "";
@@ -7,25 +8,27 @@ function randomString(len) {
     return out;
 }
 
+// Encode string into hex
 function encodeString(str) {
     return str
         .split("")
-        .map((c) => "\\x" + c.charCodeAt(0).toString(16))
+        .map(c => "\\x" + c.charCodeAt(0).toString(16))
         .join("");
 }
 
+// Generate opaque predicate
 function generateOpaquePredicate() {
-    return `((123456 * 8 / 4) == (2 * 123456))`;
+    return `((Math.random() * 99999) < 99999)`; // always true but looks tricky
 }
 
+// Level 4 Obfuscator (Hybrid VM)
 function obfuscate(script) {
-    let key = randomString(12);
+    let key = randomString(16);
     let encoded = encodeString(script);
+    let filler = randomString(128);
 
-    let filler = randomString(64);
-
-    return `--[[ Obfuscated by Tthanh Obfuscator - Level 3 ]]--
-local junk_${filler} = ${Math.floor(Math.random() * 999999)}
+    return `--[[ Obfuscated by Tthanh Obfuscator - discord.gg/cEwrGBTckj ]]--
+local junk_${filler} = ${Math.floor(Math.random() * 9999999)}
 if ${generateOpaquePredicate()} then
     local k = "${key}"
     local function d(s)
@@ -35,14 +38,15 @@ if ${generateOpaquePredicate()} then
         end
         return o
     end
-    loadstring(d("${encoded}"))()
+    -- Hybrid VM simulation
+    local vm_code = "loadstring(d('"..encoded.."'))()"
+    loadstring(vm_code)()
 else
-    while true do end
+    repeat until false
 end`;
 }
 
-// UI Bind
-
+// Bind to HTML
 window.onload = () => {
     const inp = document.getElementById("input");
     const out = document.getElementById("output");
