@@ -1,97 +1,10 @@
 <!DOCTYPE html>
-
-
-<div class="wrap">
-<div class="panel fade-in">
-<div class="title">
-<h2 class="neon">Obfuscator — AirMedium (Demo)</h2>
-<div style="display:flex;gap:8px;align-items:center">
-<div class="badge">All 3 Anti-Tamper (simulated)</div>
-<div style="opacity:0.7">Engine: <strong>demo</strong></div>
-</div>
-</div>
-
-
-<div class="cols" style="margin-top:14px">
-<div>
-<label style="font-size:13px">Input Lua/Luau</label>
-<textarea id="input" placeholder="Dán script Lua/Luau vào đây..."></textarea>
-
-
-<div class="controls">
-<select id="preset">
-<option value="airmedium">AirMedium (14–15 step)</option>
-<option value="medium">Medium (7–8 step)</option>
-<option value="mediumv2">Mediumv2 (15 step)</option>
-</select>
-<button id="run">Obfuscate (Demo)</button>
-<button id="copy">Copy</button>
-</div>
-
-
-<div class="levels">
-<div class="level">Level 1</div>
-<div class="level">Level 2</div>
-<div class="level active">Level 3</div>
-<div class="level">Level 4</div>
-</div>
-
-
-</div>
-
-
-<div class="result">
-<div class="meta">
-<div class="badge">Output</div>
-<div style="opacity:0.7">Demo output — non-executable (safe)</div>
-</div>
-<pre id="output">Kết quả sẽ xuất hiện ở đây...</pre>
-</div>
-</div>
-
-
-</div>
-</div>
-
-
-<script src="engine.js"></script>
-<script>
-// UI wiring — index refers to safe demo engine functions exposed by engine.js
-const runBtn = document.getElementById('run');
-const inputEl = document.getElementById('input');
-const outputEl = document.getElementById('output');
-const copyBtn = document.getElementById('copy');
-const modeBtn = document.getElementById('modeBtn');
-
-
-runBtn.onclick = () => {
-const txt = inputEl.value || "-- empty script --";
-const preset = document.getElementById('preset').value;
-// call safe demo obfuscator
-const res = window.safeObfuscateDemo(txt, {preset});
-outputEl.textContent = res;
-};
-
-
-copyBtn.onclick = async () => {
-try{
-await navigator.clipboard.writeText(outputEl.textContent);
-copyBtn.textContent = 'Copied!';
-setTimeout(()=>copyBtn.textContent='Copy',900);
-}catch(e){
-copyBtn.textContent = 'Fail';
-setTimeout(()=>copyBtn.textContent='Copy',900);
-}
-};
-
-
-// neon/dark toggle
-let neon=true;
-modeBtn.onclick = ()=>{
-neon = !neon;
-if(neon){document.body.style.background='linear-gradient(135deg,var(--bg),#0b0b0d)';modeBtn.textContent='Neon Mode'}
-else{document.body.style.background='#0f1724';modeBtn.textContent='Dark Mode'}
-};
-</script>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>My GitHub Page</title>
+</head>
+<body style="margin:0; display:flex; justify-content:center; align-items:center; height:100vh; background:black;">
+  <img src="image.png" alt="Ảnh" style="max-width:100%; max-height:100%;">
 </body>
 </html>
