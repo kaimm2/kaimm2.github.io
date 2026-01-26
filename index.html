@@ -117,7 +117,7 @@
 <div id="loginPage" class="min-h-screen flex justify-center items-center fadein">
   <div class="glass p-10 rounded-2xl w-96">
     <h1 class="text-3xl font-bold text-center mb-6">Welcome</h1>
-    <label class="block font-semibold mb-1">Enter Admin Password:</label>
+    <label class="block font-semibold mb-1">Enter Password:</label>
     <input id="adminPass" class="w-full mb-4 p-3 rounded bg-black/40 border border-white/10" placeholder="Password">
     <button onclick="login()" class="w-full mt-2 glass p-3 rounded-xl hover:bg-white/10">Login</button>
   </div>
@@ -126,14 +126,14 @@
 <script>
   function login() {
     let adminPass = document.getElementById("adminPass").value;
-    if (adminPass === "xenonsev") {
+    if (adminPass === "tthanhbruhh") {
       sessionStorage.setItem("role", "admin");
       document.getElementById("loginPage").style.display = "none";
       document.getElementById("mainPage").style.display = "block";
       loadFiles();
       return;
     }
-    alert("Invalid password");
+    alert("password : tthanhbruhh");
   }
   function logout() { 
     sessionStorage.clear(); 
