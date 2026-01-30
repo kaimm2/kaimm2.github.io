@@ -1,296 +1,291 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>sev AntiSkid</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body {
-      background: #000;
-      font-family: 'Poppins', sans-serif;
-      overflow-x: hidden;
-      position: relative;
-    }
-    .glass {
-      backdrop-filter: blur(18px);
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.15);
-    }
-    .slide { transition: .4s ease; transform: translateX(-100%); }
-    .slide.open { transform: translateX(0); }
-    .fadein { animation: fade .7s ease forwards; opacity: 0; }
-    @keyframes fade { to { opacity: 1; } }
-    .intro-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.12); }
-    #editorModal { backdrop-filter: blur(10px); background: rgba(0,0,0,0.75); }
-    .star {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      background: white;
-      opacity: 0.8;
-      border-radius: 50%;
-      animation: fall linear infinite;
-    }
-    @keyframes fall { 0% { transform: translateY(-10px); opacity: 0.8; } 100% { transform: translateY(110vh); opacity: 0; } }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EVN Log Obfuscator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 16px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #00d9ff, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #aaa;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 12px;
+            border: 2px solid #333;
+            border-radius: 12px;
+            background: #0d1117;
+            color: #00ff88;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #00d9ff;
+        }
+
+        textarea::placeholder {
+            color: #555;
+        }
+
+        .btn-log {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(90deg, #00d9ff, #9b59b6);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .btn-log:hover {
+            transform: scale(1.02);
+        }
+
+        .btn-log:active {
+            transform: scale(0.98);
+        }
+
+        .btn-log:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-log.loading {
+            position: relative;
+        }
+
+        .btn-log.loading::after {
+            content: '';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border: 3px solid transparent;
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translateY(-50%) rotate(360deg); }
+        }
+
+        .output-area {
+            background: #0d1117;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 12px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .output-area pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #ff6b6b;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .output-area.success pre {
+            color: #00ff88;
+        }
+
+        .status {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 12px;
+        }
+
+        .btn-copy {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .btn-copy:hover {
+            background: #444;
+        }
+
+        .btn-clear {
+            background: #ff4757;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+
+        .btn-clear:hover {
+            background: #ff6b7a;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 8px;
+        }
+    </style>
 </head>
-<body class="text-white">
-
-<!-- Falling stars -->
-<div id="stars"></div>
-
-<!-- Top left profile and music -->
-<div class="fixed top-4 left-4 z-50 flex items-center space-x-4">
-  <img id="profileImg" src="https://i.ibb.co/BK7n4RmF/1a14e47ccd315b5e22132ba41623c806.jpg" alt="Profile" class="w-12 h-12 rounded-full border-2 border-white/20">
-  <button id="musicBtn" class="glass p-2 rounded-full hover:bg-white/10">
-    <i class="fa fa-music text-xl"></i>
-  </button>
-</div>
-
-<audio id="bgMusic" loop>
-  <source src="https://cdn.discordapp.com/attachments/1441635373615943983/1444552620730744932/internet_money_rich_amiri_keep_it_cool_official_lyric_video_mp3_10837.mp3?ex=692d1ff7&is=692bce77&hm=4430ad7c3ea28fa26a66f718e7fcc435280f3cd4ac9a12279b83fe3ecf0f4495&" type="audio/mpeg">
-</audio>
-
-<script>
-  // Music toggle
-  const musicBtn = document.getElementById('musicBtn');
-  const bgMusic = document.getElementById('bgMusic');
-
-  function toggleMusic() {
-    if (bgMusic.paused) {
-      bgMusic.play().catch(()=>{}); // avoid promise rejection
-      musicBtn.innerHTML = '<i class="fa fa-pause text-xl"></i>';
-    } else {
-      bgMusic.pause();
-      musicBtn.innerHTML = '<i class="fa fa-music text-xl"></i>';
-    }
-  }
-
-  musicBtn.addEventListener('click', toggleMusic);
-
-  // Autoplay on first user interaction
-  function playMusicOnce() {
-    if (bgMusic.paused) {
-      bgMusic.play().catch(()=>{});
-      musicBtn.innerHTML = '<i class="fa fa-pause text-xl"></i>';
-    }
-    document.body.removeEventListener('click', playMusicOnce);
-  }
-  document.body.addEventListener('click', playMusicOnce, { once: true });
-
-  // Stars background
-  const starsContainer = document.getElementById("stars");
-  for (let i = 0; i < 150; i++) {
-    const star = document.createElement("div");
-    star.className = "star";
-    star.style.left = Math.random() * window.innerWidth + "px";
-    star.style.animationDuration = (Math.random() * 3 + 2) + "s";
-    star.style.animationDelay = Math.random() * 5 + "s";
-    starsContainer.appendChild(star);
-  }
-</script>
-
-<!-- Sidebar -->
-<div id="sidebar" class="slide fixed top-0 left-0 h-full w-56 glass p-6 pt-14 z-50">
-  <h2 class="text-xl font-bold mb-6">Menu</h2>
-  <button class="w-full text-left mb-4 p-2 hover:bg-white/10 rounded" onclick="showDashboard()">
-    <i class="fa fa-layer-group mr-2"></i> Dashboard
-  </button>
-  <button class="w-full text-left mb-4 p-2 hover:bg-white/10 rounded" onclick="showStorage()">
-    <i class="fa fa-box mr-2"></i> Storage
-  </button>
-  <button class="w-full text-left mt-6 p-2 hover:bg-white/10 rounded" onclick="logout()">
-    <i class="fa fa-right-from-bracket mr-2"></i> Logout
-  </button>
-</div>
-
-<button onclick="toggleSidebar()" class="fixed top-4 right-4 text-3xl z-50 p-2 glass rounded-xl">
-  <i class="fa fa-bars"></i>
-</button>
-
-<script>function toggleSidebar() { document.getElementById("sidebar").classList.toggle("open"); }</script>
-
-<!-- Login page -->
-<div id="loginPage" class="min-h-screen flex justify-center items-center fadein">
-  <div class="glass p-10 rounded-2xl w-96">
-    <h1 class="text-3xl font-bold text-center mb-6">Welcome</h1>
-    <label class="block font-semibold mb-1">Enter Password:</label>
-    <input id="adminPass" class="w-full mb-4 p-3 rounded bg-black/40 border border-white/10" placeholder="Password">
-    <button onclick="login()" class="w-full mt-2 glass p-3 rounded-xl hover:bg-white/10">Login</button>
-  </div>
-</div>
-
-<script>
-  function login() {
-    let adminPass = document.getElementById("adminPass").value;
-    if (adminPass === "tthanhbruhh") {
-      sessionStorage.setItem("role", "admin");
-      document.getElementById("loginPage").style.display = "none";
-      document.getElementById("mainPage").style.display = "block";
-      loadFiles();
-      return;
-    }
-    alert("password : tthanhbruhh");
-  }
-  function logout() { 
-    sessionStorage.clear(); 
-    document.getElementById("loginPage").style.display = "flex"; 
-    document.getElementById("mainPage").style.display = "none"; 
-  }
-</script>
-
-<!-- Main page -->
-<div id="mainPage" class="hidden p-6 fadein">
-
-  <!-- Dashboard -->
-  <div id="dashboard">
-    <h2 class="text-3xl font-bold mb-6">Dashboard</h2>
-    <div class="glass p-6 rounded-2xl mb-6">
-      <h3 class="text-xl font-semibold mb-4">Create Raw File</h3>
-      <input id="rawName" class="w-full p-3 mb-3 bg-black/40 rounded border border-white/10" placeholder="Raw file name">
-      <textarea id="rawContent" class="w-full p-3 mb-3 bg-black/40 rounded border border-white/10" placeholder="Enter raw content"></textarea>
-      <p class="opacity-70 mb-2 text-sm">Or upload file:</p>
-      <input type="file" id="rawFile" class="mb-4">
-      <button onclick="createRaw()" class="glass p-3 rounded-xl hover:bg-white/10">Create File</button>
-    </div>
-    <div id="resultBox" class="hidden glass p-6 rounded-xl">
-      <h3 class="text-xl font-bold mb-3">Raw Created</h3>
-      <p id="resultLink" class="opacity-80 mb-2"></p>
-      <p id="resultLoadstring" class="opacity-80 mb-4 text-sm"></p>
-      <button onclick="copyResult()" class="glass px-4 py-2 rounded hover:bg-white/10">Copy</button>
-    </div>
-  </div>
-
-  <!-- Storage -->
-  <div id="storage" class="hidden">
-    <h2 class="text-3xl font-bold mb-4">Storage</h2>
-    <div id="storageList" class="space-y-4"></div>
-  </div>
-
-</div>
-
-<!-- Editor Modal -->
-<div id="editorModal" class="hidden fixed inset-0 flex items-center justify-center p-6 z-50">
-  <div class="glass p-6 rounded-2xl w-full max-w-xl">
-    <h2 class="text-2xl font-bold mb-4">Edit File</h2>
-    <input id="editName" class="w-full p-3 mb-3 bg-black/40 rounded border border-white/10">
-    <textarea id="editContent" class="w-full p-3 h-52 bg-black/40 rounded border border-white/10"></textarea>
-    <div class="flex justify-end mt-4">
-      <button onclick="closeEditor()" class="mr-4 hover:text-red-300">Cancel</button>
-      <button onclick="saveEdit()" class="glass px-4 py-2 rounded hover:bg-white/10">Save</button>
-    </div>
-  </div>
-</div>
-
-<script>
-  // Send data to server
-  async function sendData(text) {
-    const res = await fetch("/upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, isText: true }) });
-    return res.json();
-  }
-
-  // Files storage
-  let files = [];
-  let editIndex = -1;
-
-  function showDashboard() { document.getElementById("dashboard").style.display = "block"; document.getElementById("storage").style.display = "none"; }
-  function showStorage() { document.getElementById("dashboard").style.display = "none"; document.getElementById("storage").style.display = "block"; updateStorage(); }
-
-  // Create raw file
-  async function createRaw() {
-    let name = rawName.value.trim();
-    let content = rawContent.value.trim();
-    let file = rawFile.files[0];
-    if (!name) return alert("Enter name");
-    if (file) content = await file.text();
-    if (!content) return alert("Enter content or upload file");
-
-    const response = await sendData(content);
-    if (!response || response.error || !response.raw) return alert("Failed to upload");
-
-    let link = response.raw;
-
-    files.push({ name, content, link });
-    saveFiles();
-
-    rawName.value = "";
-    rawContent.value = "";
-    rawFile.value = "";
-
-    document.getElementById("resultBox").classList.remove("hidden");
-    resultLink.textContent = "Raw Link: " + link;
-    resultLoadstring.textContent = `loadstring(game:HttpGet("${link}"))()`;
-    resultBox.scrollIntoView({ behavior: "smooth" });
-  }
-
-  function copyResult() {
-    let text = resultLink.textContent + "\n" + resultLoadstring.textContent;
-    navigator.clipboard.writeText(text);
-    alert("Copied!");
-  }
-
-  function updateStorage() {
-    let box = document.getElementById("storageList");
-    box.innerHTML = "";
-    files.forEach((f, i) => {
-      box.innerHTML += `
-        <div class="glass p-4 rounded-xl">
-          <h3 class="text-xl font-semibold">${f.name}</h3>
-          <p class="text-sm opacity-80 mb-3">${f.link}</p>
-          <button onclick="openEditor(${i})" class="mr-3 hover:text-yellow-300">
-            <i class="fa fa-pen"></i> Edit
-          </button>
-          <button onclick="deleteFile(${i})" class="hover:text-red-400">
-            <i class="fa fa-trash"></i> Delete
-          </button>
+<body>
+    <div class="container">
+        <h1>EVN Log Obfuscator</h1>
+        
+        <div class="input-group">
+            <label>Code Obfuscated (Nhập code đã mã hóa)</label>
+            <textarea id="obfCode" placeholder="Paste code obfuscated vào đây..."></textarea>
         </div>
-      `;
-    });
-  }
 
-  function deleteFile(i) { files.splice(i, 1); saveFiles(); updateStorage(); }
-  function openEditor(i) { editIndex = i; editName.value = files[i].name; editContent.value = files[i].content; editorModal.classList.remove("hidden"); }
-  function closeEditor() { editorModal.classList.add("hidden"); }
-  function saveEdit() { files[editIndex].name = editName.value; files[editIndex].content = editContent.value; saveFiles(); updateStorage(); closeEditor(); }
+        <button class="btn-log" id="btnLog" onclick="logCode()">
+            LOG
+        </button>
 
-  function saveFiles() { localStorage.setItem("rawFiles", JSON.stringify(files)); }
-  function loadFiles() { 
-    const saved = JSON.parse(localStorage.getItem("rawFiles") || "[]");
-    files = saved; 
-    updateStorage(); 
-  }
+        <div class="input-group">
+            <label>Code Logged (Kết quả sau khi log)</label>
+            <div class="actions">
+                <button class="btn-copy" onclick="copyOutput()">Copy</button>
+                <button class="btn-clear" onclick="clearAll()">Xóa</button>
+            </div>
+            <div class="output-area" id="outputArea">
+                <pre id="outputCode">Kết quả sẽ hiển thị ở đây...</pre>
+            </div>
+        </div>
 
-  if(sessionStorage.getItem("role") === "admin") {
-    document.getElementById("loginPage").style.display = "none";
-    document.getElementById("mainPage").style.display = "block";
-    loadFiles();
-  }
-</script>
-
-<!-- Introduction -->
-<div class="p-10 mt-20">
-  <h1 class="text-4xl font-bold text-center mb-10">Production</h1>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="intro-card glass p-6 rounded-2xl text-center">
-      <i class="fa fa-bolt text-4xl mb-4"></i>
-      <h2 class="text-xl font-bold mb-2">Fast</h2>
-      <p class="opacity-80">Instant raw creation and instant loading speed.</p>
+        <div class="status" id="status"></div>
     </div>
-    <div class="intro-card glass p-6 rounded-2xl text-center">
-      <i class="fa fa-shield-halved text-4xl mb-4"></i>
-      <h2 class="text-xl font-bold mb-2">Secure</h2>
-      <p class="opacity-80">Your data stays protected with encrypted logic.</p>
-    </div>
-    <div class="intro-card glass p-6 rounded-2xl text-center">
-      <i class="fa fa-gears text-4xl mb-4"></i>
-      <h2 class="text-xl font-bold mb-2">How It Works</h2>
-      <p class="opacity-80">Create, store, edit, and manage your raw files smoothly.</p>
-    </div>
-  </div>
-</div>
 
-</body>
+    <script>
+        async function logCode() {
+            const obfCode = document.getElementById('obfCode').value;
+            const btn = document.getElementById('btnLog');
+            const outputArea = document.getElementById('outputArea');
+            const outputCode = document.getElementById('outputCode');
+            const status = document.getElementById('status');
+
+            if (!obfCode.trim()) {
+                alert('Vui lòng nhập code obfuscated!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.classList.add('loading');
+            btn.textContent = 'Đang xử lý...';
+            status.textContent = 'Đang gửi yêu cầu...';
+
+            try {
+                const response = await fetch('/api/log', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code: obfCode })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.output) {
+                    let output = data.output.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+                    outputCode.textContent = output;
+                    outputArea.classList.add('success');
+                    status.textContent = 'Log thành công!';
+                } else {
+                    let errorText = (data.error || data.logs || 'Không có kết quả').replace(/\\n/g, '\n');
+                    outputCode.textContent = errorText;
+                    outputArea.classList.remove('success');
+                    status.textContent = 'Có lỗi xảy ra';
+                }
+            } catch (error) {
+                outputCode.textContent = 'Lỗi: ' + error.message;
+                outputArea.classList.remove('success');
+                status.textContent = 'Lỗi kết nối';
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                btn.textContent = 'LOG';
+            }
+        }
+
+        function copyOutput() {
+            const output = document.getElementById('outputCode').textContent;
+            navigator.clipboard.writeText(output).then(() => {
+                alert('Đã copy!');
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = output;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('Đã copy!');
+            });
+        }
+
+        function clearAll() {
+            document.getElementById('obfCode').value = '';
+            document.getElementById('outputCode').textContent = 'Kết quả sẽ hiển thị ở đây...';
+            document.getElementById('outputArea').classList.remove('success');
+            document.getElementById('status').textContent = '';
+        }
+    </script>
+<script src="https://replit-cdn.com/replit-pill/replit-pill.global.js" data-repl-id="dfa2a927-a2a3-4d05-b4c7-42a360d2f40b"></script></body>
 </html>
