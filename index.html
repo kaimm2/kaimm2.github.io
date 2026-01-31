@@ -1,0 +1,974 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Storage Visual | LuaCrack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --bg: #09090b; --card-bg: #18181b; --border: #27272a; --text-main: #e4e4e7; --text-sub: #a1a1aa; --primary: #3b82f6; --primary-hover: #2563eb; --green: #22c55e; --red: #ef4444; --purple: #a855f7; --yellow: #eab308; --input-bg: #000; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        body { background-color: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; padding-top: 80px; padding-bottom: 50px; font-size: 14px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 64px; background: rgba(9, 9, 11, 0.8); border-bottom: 1px solid var(--border); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; transition: all 0.3s; }
+        .hamburger-btn { font-size: 20px; color: var(--text-main); cursor: pointer; padding: 10px; border-radius: 8px; transition: 0.2s; }
+        .hamburger-btn:hover { background: rgba(255,255,255,0.1); }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; display: none; opacity: 0; transition: opacity 0.3s; }
+        .sidebar-overlay.active { display: block; opacity: 1; }
+        .sidebar { position: fixed; top: 0; left: -280px; width: 260px; height: 100vh; background: #121214; border-right: 1px solid var(--border); z-index: 999; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
+        .sidebar.active { left: 0; }
+        .sidebar-header { height: 64px; display: flex; align-items: center; padding: 0 24px; border-bottom: 1px solid var(--border); }
+        .logo-text { font-size: 18px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .sidebar-menu { padding: 20px 15px; display: flex; flex-direction: column; gap: 5px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-sub); text-decoration: none; border-radius: 8px; font-weight: 500; transition: 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+        .nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--primary); }
+        .nav-item i { width: 20px; text-align: center; }
+
+        .link-btn { cursor: pointer; color: var(--primary); font-weight: 600; transition: color 0.2s; }
+        .link-btn:hover { color: var(--primary-hover); }
+        .logout-btn { color: var(--red); text-decoration: none; margin-left: 5px; cursor: pointer; opacity: 0.8; transition: opacity 0.2s; }
+        .logout-btn:hover { opacity: 1; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 15px; animation: fadeIn 0.6s ease-out; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 24px; overflow: hidden; box-shadow: var(--shadow); transition: transform 0.3s, box-shadow 0.3s; }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.01); }
+        .card-title { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+        .card-body { padding: 20px; }
+        .toolbar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        input, textarea, select { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); padding: 12px; border-radius: 8px; outline: none; width: 100%; box-sizing: border-box; font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s; }
+        input:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+        textarea { height: 350px; font-family: 'JetBrains Mono', monospace; line-height: 1.6; resize: vertical; font-size: 13px; }
+        .styled-select-wrapper { position: relative; width: 100%; }
+        .styled-select-wrapper select { padding-right: 35px; cursor: pointer; appearance: none; -webkit-appearance: none; }
+        .styled-select-wrapper::after { content: '▼'; font-size: 10px; color: var(--text-sub); position: absolute; right: 15px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+        .privacy-toggle { display: flex; background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; padding: 4px; height: 44px; box-sizing: border-box; }
+        .toggle-option { flex: 1; text-align: center; cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: var(--text-sub); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        input[type="radio"] { display: none; }
+        #priv_public:checked ~ .privacy-toggle label[for="priv_public"] { background: var(--primary); color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        #priv_private:checked ~ .privacy-toggle label[for="priv_private"] { background: var(--purple); color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .btn { padding: 12px 20px; border-radius: 8px; font-weight: 600; border: none; color: white; cursor: pointer; width: 100%; height: 44px; font-size: 14px; transition: transform 0.1s, background 0.2s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary); box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39); }
+        .btn-primary:hover { background: var(--primary-hover); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.23); }
+        .btn-danger { background: var(--red); box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.39); }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-secondary { background: var(--border); color: var(--text-main); }
+        .btn-secondary:hover { background: #3f3f46; }
+        .btn-icon { background: rgba(255,255,255,0.05); color: var(--text-sub); width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; text-decoration: none; border: 1px solid transparent; cursor: pointer; transition: all 0.2s; }
+        .btn-icon:hover { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.1); transform: translateY(-1px); }
+        .table-responsive { width: 100%; } 
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; transition: background 0.2s; }
+        th { color: var(--text-sub); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; background: rgba(0,0,0,0.2); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .col-icon { width: 40px; text-align: center; font-size: 18px; color: var(--text-sub); }
+        .col-name { font-weight: 500; }
+        .col-size { color: var(--text-sub); font-size: 13px; font-family: 'JetBrains Mono'; }
+        .col-views { width: 80px; color: var(--text-sub); font-size: 13px; text-align: center; }
+        .folder-link { color: var(--text-main); font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 10px; transition: color 0.2s; }
+        .folder-link:hover { color: var(--primary); }
+        .fa-folder { color: var(--yellow); filter: drop-shadow(0 2px 4px rgba(234, 179, 8, 0.2)); }
+        .fa-file-code { color: var(--primary); }
+        .breadcrumbs { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-sub); padding: 5px 0 20px 0; overflow-x: auto; white-space: nowrap; }
+        .breadcrumb-item { color: var(--text-sub); text-decoration: none; padding: 4px 8px; border-radius: 6px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+        .breadcrumb-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+        .breadcrumb-item.active { background: rgba(255,255,255,0.1); color: var(--text-main); font-weight: 600; pointer-events: none; }
+        .breadcrumb-sep { color: var(--border); font-size: 10px; }
+        .filter-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .sort-btn { font-size: 12px; padding: 6px 12px; background: transparent; border: 1px solid var(--border); color: var(--text-sub); border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .sort-btn:hover { border-color: var(--text-sub); color: var(--text-main); }
+        .sort-btn.active { background: var(--border); color: var(--text-main); border-color: var(--text-sub); font-weight: 600; }
+        .countdown { font-family: 'JetBrains Mono'; font-size: 12px; color: #eab308; background: rgba(234, 179, 8, 0.1); padding: 3px 8px; border-radius: 4px; display: inline-block; min-width: 65px; text-align: center; border: 1px solid rgba(234, 179, 8, 0.2);}
+        .perm { color: var(--green); font-size: 12px; font-weight: 600; background: rgba(34, 197, 94, 0.1); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(34, 197, 94, 0.2); }
+        .status-badge { font-size: 12px; padding: 3px 8px; border-radius: 4px; font-weight: 500; }
+        .status-public { color: #60a5fa; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); }
+        .status-private { color: #c084fc; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.2); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 200; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;}
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-box { background: var(--card-bg); width: 90%; max-width: 400px; padding: 24px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); max-height: 85vh; overflow-y: auto; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-title { margin: 0 0 16px 0; text-align: center; font-size: 20px; font-weight: 700; color: var(--text-main); }
+        .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 14px; border: 1px solid transparent; animation: scaleIn 0.3s ease; display: none; }
+        .alert.active { display: block; }
+        .alert.success { background: rgba(34, 197, 94, 0.1); color: var(--green); border-color: rgba(34, 197, 94, 0.2); }
+        .alert.error { background: rgba(239, 68, 68, 0.1); color: var(--red); border-color: rgba(239, 68, 68, 0.2); }
+        .code-container { margin-top: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #0e0e11; }
+        .code-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-sub); font-weight: 600; }
+        .code-content { padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a1a1aa; overflow-x: auto; white-space: pre; margin: 0; line-height: 1.5; }
+        .switch { position: relative; display: inline-block; width: 36px; height: 20px; margin-right: 10px; vertical-align: middle; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3f3f46; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--green); }
+        input:checked + .slider.blue { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(16px); }
+        .help-list { list-style: none; padding: 0; margin: 0; }
+        .help-list li { margin-bottom: 15px; display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.5; color: var(--text-sub); }
+        .help-list li i { color: var(--primary); margin-top: 4px; flex-shrink: 0; }
+        .help-list strong { color: var(--text-main); }
+        .benefit-box { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 20px; }
+        .benefit-title { font-weight: 600; color: var(--green); font-size: 13px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .guest-limit-box { width: 120px; display: flex; flex-direction: column; justify-content: center; gap: 2px; flex-shrink: 0; }
+        .guest-limit-bar-bg { width: 100%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+        .guest-limit-bar { height: 100%; background: var(--green); transition: width 0.3s; }
+        .guest-limit-text { font-size: 10px; color: var(--text-sub); text-align: left; font-weight: 600; line-height: 1; margin-bottom: 2px; }
+
+        .action-group { display: flex; gap: 8px; flex: 0 0 auto; align-items: center; }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 0 15px; }
+            .toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
+            .toolbar > div:first-child { flex: 1 1 100% !important; min-width: 100%; }
+            .toolbar > div:nth-child(2), .toolbar > div:nth-child(3) { flex: 1; min-width: 45%; }
+            .action-group { width: 100%; flex-direction: row; align-items: center; justify-content: flex-start; gap: 8px; margin-top: 5px; }
+            .action-group .btn { flex: 1; width: auto; padding: 0 5px; font-size: 13px; white-space: nowrap; }
+            .container { padding: 0 10px; }
+            .card-header { padding: 12px 15px; }
+            .card-body { padding: 15px; }
+            .modal-box { width: 95%; padding: 20px; }
+            .table-responsive { overflow-x: hidden; border: none; }
+            table, thead, tbody, th, td, tr { display: block; width: 100%; box-sizing: border-box; }
+            thead tr { position: absolute; top: -9999px; left: -9999px; }
+            tr { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 12px; position: relative; }
+            td { border: none; padding: 2px 0; position: relative; }
+            .col-icon { position: absolute; top: 12px; left: 12px; width: 24px; font-size: 20px; text-align: left;}
+            .col-name { margin-left: 36px; margin-right: 80px; font-size: 15px; display: block; margin-bottom: 6px; word-break: break-all; line-height: 1.4; }
+            .col-status { display: inline-block; margin-left: 36px; margin-right: 5px; }
+            .col-size { display: inline-block; color: var(--text-sub); font-size: 12px; }
+            .col-views { display: inline-block; margin-left: 36px; font-size: 12px; }
+            .col-views:before { content: "Views: "; color: var(--text-sub); }
+            .col-time { display: block; margin-left: 36px; margin-top: 6px; font-size: 11px; color: var(--text-sub); }
+            .col-link, .col-action { display: inline-block; margin-top: 12px; margin-left: 0; padding-top: 10px; border-top: 1px dashed var(--border); width: 100%; }
+            .col-link { border-top: none; padding-top: 0; width: auto; margin-right: 10px; margin-left: 36px;}
+            .col-action { width: auto; border: none; padding: 0; margin-top: 10px; float: right; }
+            .mobile-upload-time { position: absolute; top: 14px; right: 12px; font-size: 11px; color: var(--text-sub); font-family: 'Inter', sans-serif; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
+            .mobile-hide { display: none !important; }
+        }
+        @media (min-width: 769px) { .mobile-upload-time { display: none; } }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div class="hamburger-btn" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </div>
+        <span style="font-weight: 600; font-size: 16px;">Storage Visual</span>
+    </div>
+    
+    <div style="display:flex; align-items:center; gap:15px">
+        <span onclick="openModal('help')" style="cursor:pointer; font-size:18px; color:var(--text-sub); transition:0.2s" title="Help">
+            <i class="fas fa-circle-question"></i>
+        </span>
+                    <span onclick="openModal('login')" style="cursor:pointer; font-weight:600; font-size:13px">Login</span>
+            </div>
+</nav>
+
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div class="sidebar" id="mainSidebar">
+    <div class="sidebar-header">
+        <a href="#" class="logo-text"><i class="fas fa-bolt" style="color:var(--primary)"></i> LuaCrack</a>
+    </div>
+    <div class="sidebar-menu">
+    <a href="index.php" class="nav-item active">
+        <i class="fas fa-server"></i> Storage Visual
+    </a>
+    <a href="/webhook.php" class="nav-item" onclick="handleProtectedLink(event, this.href)">
+        <i class="fas fa-shield-alt"></i> Webhook Security
+    </a>
+    <a href="/script_list.php" class="nav-item">
+        <i class="fas fa-code"></i> Script Library
+    </a>
+    
+    <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 10px;">
+        <a href="https://discord.com/invite/E2N7w35zkt" target="_blank" class="nav-item">
+            <i class="fab fa-discord"></i> Support Discord
+        </a>
+    </div>
+</div> </div>
+
+<div id="helpModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:500px">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3 class="modal-title" style="margin:0;">User Guide</h3>
+            <span onclick="closeModal('help')" style="cursor:pointer; font-size:20px; opacity:0.6">&times;</span>
+        </div>
+        
+        <div class="benefit-box">
+            <div class="benefit-title"><i class="fas fa-star" style="margin-right:5px"></i> Why Create an Account?</div>
+            <ul style="margin:0; padding-left:20px; color:var(--text-sub); font-size:13px; line-height:1.6">
+                <li><b>Permanent Storage:</b> Guest files expire in 24h. User files last forever.</li>
+                <li><b>Private Mode:</b> Hide your scripts from the public list.</li>
+                <li><b>API Access:</b> Upload/Obfuscate directly from Roblox/Termux.</li>
+                <li><b>No Limits:</b> Unlimited obfuscation (Guests limited to 5/day).</li>
+            </ul>
+        </div>
+
+        <h4 style="margin:0 0 10px 0; font-size:15px">How to Use</h4>
+        <ul class="help-list">
+            <li>
+                <i class="fas fa-upload"></i>
+                <div>
+                    <strong>Upload & Folders:</strong><br>
+                    Enter a filename like <code>MyScript.lua</code>. To create a folder, use slashes: <code>Hubs/V1/Main.lua</code>.
+                </div>
+            </li>
+            <li>
+                <i class="fas fa-magic"></i>
+                <div>
+                    <strong>Obfuscation:</strong><br>
+                    Paste your code, select a preset (e.g., 'Evil' or 'Minify'), and click "Obf". 
+                    <br><small style="color:var(--green)">Now powered by Fast Node.js API.</small>
+                </div>
+            </li>
+            <li>
+                <i class="fas fa-terminal"></i>
+                <div>
+                    <strong>API & Automation:</strong><br>
+                    Click the <i class="fas fa-cog"></i> icon (Settings) after logging in to get your API Token and code examples for Roblox executors.
+                </div>
+            </li>
+            <li>
+                <i class="fas fa-lock"></i>
+                <div>
+                    <strong>Raw Access:</strong><br>
+                    Use the switch in the file list to temporarily disable raw access (useful for maintenance).
+                </div>
+            </li>
+        </ul>
+        
+        </div>
+</div>
+
+<div id="loginModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 class="modal-title">Welcome Back</h3>
+        <div class="alert" id="loginAlert"></div>
+        <form onsubmit="handleAuth(event, this)">
+            <input type="hidden" name="action" value="login">
+            <div style="margin-bottom:12px"><input type="text" name="username" placeholder="Username" required></div>
+            <div style="margin-bottom:20px"><input type="password" name="password" placeholder="Password" required></div>
+            <button class="btn btn-primary">Sign In <i class="fas fa-arrow-right"></i></button>
+        </form>
+        <div style="text-align:center; margin-top:20px; font-size:13px; color:var(--text-sub);">
+            No account? <span class="link-btn" onclick="switchModal('login','register')">Create one</span>
+            <br><span onclick="closeModal('login')" style="cursor:pointer; margin-top:8px; display:inline-block; opacity:0.6">Close</span>
+        </div>
+    </div>
+</div>
+
+<div id="registerModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 class="modal-title">Create Account</h3>
+        <div class="alert" id="registerAlert"></div>
+        <form onsubmit="handleAuth(event, this)">
+            <input type="hidden" name="action" value="register">
+            <div style="margin-bottom:12px"><input type="text" name="username" placeholder="Username" required></div>
+            <div style="margin-bottom:20px"><input type="password" name="password" placeholder="Password (8+ chars, A-Z, 0-9)" required></div>
+            <button class="btn btn-primary">Sign Up <i class="fas fa-user-plus"></i></button>
+        </form>
+        <div style="text-align:center; margin-top:20px; font-size:13px; color:var(--text-sub);">
+            Already have an account? <span class="link-btn" onclick="switchModal('register','login')">Login</span>
+            <br><span onclick="closeModal('register')" style="cursor:pointer; margin-top:8px; display:inline-block; opacity:0.6">Close</span>
+        </div>
+    </div>
+</div>
+
+<div id="settingsModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 600px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3 class="modal-title" style="margin:0;">API Usage</h3>
+            <span onclick="closeModal('settings')" style="cursor:pointer; font-size:20px; opacity:0.6">&times;</span>
+        </div>
+        <div id="settingsAlert" class="alert"></div>
+        
+        <p style="font-size:13px; color:var(--text-sub); margin-bottom:8px;">Your Secret API Token</p>
+        <div class="token-display" style="display:flex; gap:8px; margin-bottom:20px;">
+            <input type="text" id="apiTokenInput" value="YOUR_API_TOKEN" readonly onclick="copyToClipboard(this)" style="text-align:center; color: var(--green); font-family:'JetBrains Mono'; font-weight:600; letter-spacing:1px;">
+            <form onsubmit="handleGenerateToken(event, this)" style="margin:0;">
+                <input type="hidden" name="action" value="generate_token">
+                <button class="btn btn-primary" style="width:auto; padding: 0 16px;" title="Regenerate"><i class="fas fa-sync-alt"></i></button>
+            </form>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); margin: 20px 0; position:relative; text-align:center">
+            <span style="background:var(--card-bg); padding:0 10px; color:var(--text-sub); font-size:12px; position:relative; top:-10px;">Documentation</span>
+        </div>
+
+        
+        <div class="code-container" style="margin-bottom:15px;">
+            <div class="code-header">
+                <span><i class="fas fa-gamepad"></i> Roblox (Lua)</span>
+                <span class="copy-btn-sm link-btn" onclick="copyCode(this)">Copy</span>
+            </div>
+            <div class="code-content">local url = "https://luacrack.site/"
+local token = "<span class="token-ph">YOUR_API_TOKEN</span>"
+local response = request({
+    Url = url,
+    Method = "POST",
+    Headers = { ["Content-Type"] = "application/x-www-form-urlencoded" },
+    Body = "action=save&api_token="..token.."&key=Hubs/script.lua&content=print('Hi')"
+})
+print(response.Body)</div>
+        </div>
+
+        <div class="code-container" style="margin-bottom:15px;">
+            <div class="code-header">
+                <span><i class="fas fa-terminal"></i> Termux Upload</span>
+                <span class="copy-btn-sm link-btn" onclick="copyCode(this)">Copy</span>
+            </div>
+            <div class="code-content">curl -L -X POST "https://luacrack.site/" \
+     -d "action=save" \
+     -d "api_token=<span class="token-ph">YOUR_API_TOKEN</span>" \
+     -d "key=MyFolder/script.lua" \
+     -d "content=print('Hello World')"</div>
+        </div>
+
+        <div class="code-container">
+            <div class="code-header">
+                <span><i class="fas fa-magic"></i> New: Proxy Obfuscation API</span>
+                <span class="copy-btn-sm link-btn" onclick="copyCode(this)">Copy</span>
+            </div>
+            <div class="code-content">curl -L -X POST "https://luacrack.site/" \
+     -d "action=create_obf" \
+     -d "api_token=<span class="token-ph">YOUR_API_TOKEN</span>" \
+     -d "preset=Evil" \
+     -d "content=print('Test API')" \
+     -d "output=console"</div>
+     <div style="padding:8px 12px; font-size:11px; color:var(--text-sub); border-top:1px solid var(--border)">
+         * This uses your Web Token to call the Node.js bot (localhost:3000).<br>
+         * Set <b>output=Filename.lua</b> to save directly to storage.<br>
+         * Set <b>output=console</b> to print code to screen.
+     </div>
+        </div>
+    </div>
+</div>
+
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal-box">
+        <div style="text-align:center; margin-bottom:15px">
+            <i class="fas fa-exclamation-circle" style="font-size:40px; color:var(--yellow); margin-bottom:15px; opacity:0.8"></i>
+            <h3 class="modal-title" id="confirmTitle">Confirm Action</h3>
+        </div>
+        <p class="modal-text" id="confirmText" style="text-align:center; color:var(--text-sub)">Are you sure you want to proceed?</p>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeModal('confirm')">Cancel</button>
+            <button class="btn btn-primary" id="confirmBtnAction">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<form method="POST" id="deleteForm" style="display:none;">
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="key" id="deleteKeyInput">
+    <input type="hidden" name="current_dir_context" value="">
+</form>
+
+<div class="container">
+    
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title"><i class="fas fa-edit" style="margin-right:8px; color:var(--primary)"></i> Code Editor</div>
+            <span onclick="document.getElementById('fileUpload').click()" style="font-size:13px; color:var(--text-sub); cursor:pointer; display:flex; align-items:center; gap:5px; transition:color 0.2s">
+                <i class="fas fa-cloud-upload-alt"></i> Upload File
+            </span>
+            <input type="file" id="fileUpload" style="display:none" onchange="loadFile(this)">
+        </div>
+        <div class="card-body">
+            <form method="POST" id="editorForm">
+                <input type="hidden" name="action" value="save">
+                <input type="hidden" name="origin_name" id="originNameInput">
+                <input type="hidden" name="guest_id" id="guestIdInput">
+                <input type="hidden" name="current_dir_context" value="">
+
+                <div class="toolbar">
+                                            <input type="hidden" name="key" id="guestKeyInputDisplay">
+                        <div style="flex:3;">
+                            <input type="text" disabled placeholder="Filename will be random (Guest Mode)" style="opacity:0.5; cursor:not-allowed">
+                        </div>
+                    
+                    <div style="flex:1; min-width: 120px;" id="presetContainer">
+                        <div class="styled-select-wrapper">
+                            <select id="obfPreset">
+                                <optgroup label="General">
+                                    <option value="Minify">Minify</option>
+                                    <option value="Luamin">Luamin</option>
+                                    <option value="Format">Format</option>
+                                    <option value="Beautify">Beautify</option>
+                                </optgroup>
+                                <optgroup label="All Sizes">
+                                    <option value="Me">Obf Me</option>
+                                    <option value="Flow">Obf Flow</option>
+                                    <option value="Evil">Evil</option>
+                                    <option value="Abyss">Abyss</option>
+                                    <option value="Abyss2">Abyss2</option>
+                                    <option value="Hex">Hex</option>
+                                    <option value="Weak">Obf Weak</option>
+                                    <option value="Light">Obf Li</option>
+                                    <option value="Ps">Obf Ps</option>
+                                    <option value="Rz">Obf Rz</option>
+                                    <option value="R2">Obf R2</option>
+                                    <option value="Veil">Veil</option>
+                                    <option value="L1">Obf L1</option>
+                                    <option value="L2">Obf L2</option>
+                                    <option value="Ib1">Ib1</option>
+                                    <option value="Ib2">Ib2</option>
+                                    <option value="Ib3">Ib3</option>
+                                </optgroup>
+                                <optgroup label="Limit Under 300Kb">
+                                    <option value="Wrd">Wrd</option>
+                                    <option value="Ibv">Ibv</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="M1">M1</option>
+                                    <option value="M2">M2</option>
+                                    <option value="M3">M3</option>
+                                    <option value="Basic">Basic</option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Ibs">Ibs</option>
+                                </optgroup>
+                                <optgroup label="Limit Under 100Kb">
+                                    <option value="Hard">Hard</option>
+                                    <option value="Strong">Strong</option>
+                                    <option value="Env">Env</option>
+                                    <option value="MaxSecurity">Hidden</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="action-group">
+                                                <div class="guest-limit-box" title="Guest Daily Limit">
+                            <div class="guest-limit-text">Daily Limit: <span id="guestLimitCount">1</span>/5</div>
+                            <div class="guest-limit-bar-bg">
+                                <div class="guest-limit-bar" id="guestLimitBar" style="width: 20%;"></div>
+                            </div>
+                        </div>
+                                                
+                        <button type="button" class="btn btn-secondary" onclick="runObfuscate()" title="Obfuscate via Bot" id="btnObf">
+                            <i class="fas fa-magic" style="color:#d946ef"></i> Obf
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="confirmSave()">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                    </div>
+                </div>
+                <textarea name="content" id="fileContent" placeholder="Paste your Lua script here..." required spellcheck="false"></textarea>
+            </form>
+        </div>
+    </div>
+
+        <div class="card" style="animation-delay: 0.1s;">
+        <div class="card-header">
+            <div class="card-title"><i class="fas fa-folder-open" style="margin-right:8px; color:var(--yellow)"></i> File Manager</div>
+        </div>
+        <div class="card-body" style="padding-bottom: 0;">
+            <div class="breadcrumbs">
+                <a href="/index.php" class="breadcrumb-item active"><i class="fas fa-home"></i></a>
+                            </div>
+            <div class="filter-bar">
+                <div style="font-size: 13px; color: var(--text-sub); font-weight:500">
+                   <span id="itemCount">1</span> items found
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button onclick="sortFiles('newest')" class="sort-btn active" id="sort-newest">Newest</button>
+                    <button onclick="sortFiles('name_asc')" class="sort-btn" id="sort-name_asc">A-Z</button>
+                    <button onclick="sortFiles('size_desc')" class="sort-btn" id="sort-size_desc">Size</button>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-icon"></th>
+                        <th class="col-name">Name</th>
+                        <th class="col-views">Views</th>
+                        <th class="col-status">Visibility</th>
+                        <th class="col-time">Expires</th>
+                        <th class="col-link">Raw</th>
+                        <th class="col-action"></th>
+                    </tr>
+                </thead>
+                <tbody id="fileListBody"></tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+
+<script>
+    const fileData = [{"id":"807","owner":"guest","display_name":"3ZI0xiu","content":"--\/\/ This file was created by XHider https:\/\/discord.com\/invite\/E2N7w35zkt\r\n\r\nreturn(function(...)do local Y,G,N,s,r=math,table,tonumber,setmetatable,string local n,d,h,c,F,Z=Y.floor,Y.max,r.unpack,G.concat,r.char,r.sub local k=\"iiihhhiiiiihssss\",\"\\136%\\250\\025N\\201pwzg\\019(A_Y&l\\r\\200N\\181\\000\\181\\226\\r\\001O\\134\\212\\001\\a\\202\\154;\\000\\000\\001\\000\\000\\001\\a\\000\\000\\000__index\\006\\000\\000\\000__call\\005\\000\\000\\000__sub\\005\\000\\000\\000__mul\"local e=-517651-(-517652)local function v()if e+(493119+-493116)<=#k then local Y,G,N,s=k:byte(e,e+(-569620-(-569623)))e=e+(-709207+709211)return((Y+G*(1019045-1018789))+N*(-942816+1008352))+s*(627147+16150069)end return-233672-(-233672)end local function D()if e+(-702480-(-702481))<=#k then local Y,G=k:byte(e,e+(501708+-501707))e=e+((-1438298-(-913133+(824738-(237500+676672))))+435733)return Y+G*(1871-1615)end return-112268+112268 end local function u()local Y=919756+-919756 for G=e,#k,(-1121777-(-270351))-(-851427)do if k:byte(G)==-2263+2263 then Y=G-e break end end if Y>(489733+296880)-786613 then local G=k:sub(e,(e+Y)-(-929066-(-1421589-(-492522))))e=(e+Y)+(-210540+(-754548-(-837818-127271)))return G end return\"\"end local g=v()local V=v()local B=v()local U=D()local R=D()local I=D()local T=v()local f=v()local y=v()local l=v()local t=v()local M=D()local a=u()local H=u()local P=u()local o=u()local j,J,q,X,W,m,z,O,L,p=344523-344522,((-1020260+1722196)+-575388)-126547,-24775+24776,746089+(-537825-191457),-795985-(-844256),(2147203752-265286)-(-545181),2146629131-(-661598-((-278432+-531941)-(-1003291))),2147389192-(-94455),-755359+2148239006,438060-(690254-252194)local function Q()q,j,J=(m*q)%L,(X*j)%z,(W*J)%O return n((((((j+T)+J)+f)+q)+y)\/t)%M end local function S(Y)local G={}for s=-247261+((475411+169003)+-397152),#Y,(-1040385+1773941)+-733554 do local r=Z(Y,s,s+(92587-92586))if r and#r==-257125+(772061+-514934)then local Y=N(r,-760959+760975)if Y then G[#G+(-161870-(-161871))]=F(((Y-Q())+M)%M)end end end return G end _G.gFr5edt=xhider end local N={\"?XIYgA,\";\"6$79f+AHue+=f0#+B*5jARk\";\"F)YQ3D?\",\";e^Ph\",\"DIn\\\"\";\"E,ol=ARfgPCi<ckCi]\";\";fH;ZA,\",\"7qHd=Bm+E:\",\"Bl8!\\'Ec_\";\"7<W6[FAQCdFE7\",\"D0\\'=\";\"?XIV\\\\D?\";\":gnBUDKG\",\"9kX\",\"9jq[PATUg]DId=!\";\"6$79f+AQV\/]!lc(=EO\";\"AO:EU06puC@<?(%AU#kKAS-!:\",\"AmmGbF8\";\";fH\/hDG4tY@<?4%DD;\",\"3W\",\"6[<K^DId=!87?CHCh5nCDfT`4\",\"@r-\\'nCB\",\"Ao(mg\";\"G%GQ5\",\":18!N\",\"Ao_g,;e\\'6PAH\";\">\\\"NUBAU\\\"\",\"@rH6p@<;\",\"BQ[s!\",\"DfY\",\"<,uDbF)YQ.ASu\\\"\\'\",\"GA(E,\",\"<+0QR\",\"Anc\\'m\";\"6YKnK@:OCjEW\",\"6\\\">\\\"NG%F!\\\\@;0V\\\"Dfg%\",\"G@>3-\";\"6YKnK@:OCjE^=5HARk\";\"@Wcd7Df,\",\"9jq[PBlnK.AH\";\"EC!E16<8%lCKEeq\";\"7WMpSAH\";\"6\\\"FnSDImA\",\";fH;ZA3(h\";\"=`8F*6#pNZ9Q+uo+T\",\"FCf]=\",\"6=FA>B6%p5DIc^e@;^.*@<,ps\";\"Vel\";\";Iso\\\\FAHdQE+*s.\",\"F*(i4AH\";\"Ap&!$FD5Z2\",\"GA^u4+E(j7FD,B0+EM%5BlJ\/:\";\"?XIMd@;0b\\'\";\"Ea`irDf#\",\"6XahCEa_[VDH^ssD+&)ZFCB&s\",\"=(,fb7W3<7BPD9n\";\"6Z7!V7s\/M\",\"6\\\">\\\"NG%F?i@r$?VCi<g!Er\",\"F\\\\HIi;_^4%1hq5+\",\"7;cOCCh7,\",\"9keZY\",\"FD5T\\'\",\"8T&Tk@;^00<+0QR\",\"87cLJBQO\";\"?XIGU\";\"9jq[PATU@>:]\",\"<H)Sk@:Wp\";\"Ao_g,;Fa%\",\"<,Zec;e\\'i^E-)\";\"@r#Xd\/c\";\"FDkf)Ch3\";\":#W^V+A6CcZXFtD@;P\",\"?XI>T@Wc;\",\"<+oue+DG_\\'Bk1dmF<GdACht5\\'\";\";g!+m@:NkFEb0E.ATn\",\"?XInnF*)G:DJ&\";\"AH\",\"<+0W_ATDL&B-:_rFCes(ARmD9\";\"?XIYmC]\",\"7<W6[FAuskATDh\",\"6$79f+Am8iGp$%)Bl3\",\"?XI>XFo\",\"<-MnbDGt+eG%kGt\";\"CB\";\";IO*MF`R\";\"6#L1GDfSZmBl8\\\"\",\"6Z6[V\",\":iCDhFD5Z2\",\"6tLO\/@;TRr@8CBCCisf5Df\/9f\";\"?XIYgA7Y\";\"7<W6[F<F\\\\.\",\"A7Y\";\"<+0QR3Zn\",\":2&UtX_o7\\\\C#Q[TD?\";\"7q$@X\";\";Is<OEcbtU+9\";\":i\\'QcATC:`B`\",\"6Ul*)D.N\";\"AKZ#)E,Tc=ARmC\";\"89JcXDJs6\\\";K$Jq:gnBd\",\"6N\",\"=)W+pF)YPtAH\",\";Z\",\"3[c:b.OdC\";\"B4Z0uDf9C\",\"<H)Sk@:Wq1+9\",\"E,ol=ARfg]@:F%a\",\"E,ol=ARfgOF`(]2Bl@k\";\"?XIb\\\\Bl\\\\7\";\"8T&EWE`-=VBm\\\"I\";\"`\/n[U=EWT7O`\\\"e\";\"6$79f+B67PBcp>gDJ0\",\"?XI5PA,\",\":N^bqBl7J\";\"?XIVk\",\"FD5N4DegIV+@(3pFDkN,DdmO$\";\"@sJ\";\"Bl<\";\"6Xb%L\";\":i\\']OF(HJ(Df0Z*@rri8BOr<)\";\"`\/n[U9Z*lJ\";\"F`)\/,@qu\";\"G]ms\";\"9lFQRC]\",\"<+oue+Dk\\\\3@<>peCh4`\\'F!,:;\",\"BOtU_F\\\"_B=Bl5S?Bju*kEd7\";\":i\\'QcATDh\",\"6XahCEa_[NGZo$(D+&)ZFCB&s\";\"@ps1i@UWb^\";\"?XI;OChs\",\";e\\'iZASt\\\"\\\\B`\",\"B4Z1!DJ!e\";\"ASuS\";\"6#L=OATI\";\"B5M(!@qY\";\"?XIqnD#\",\"7VQ[T\",\"6#:aRH#lc!<,Z^\";\"?XIY]FCB9\\\"@VfT\",\"9Q+ELCf\\\"qVH\\\"D!\";\";fHGg3Zn\";\"?XIAa\",\"<CTbQG%GQ5:gnBdEr\";\"?XIV\\\\\",\"?XI\\\\^GA1r*AU\\\"\";\"AoD]4@3BH!G9D\\'?EcYr5DCt\",\";fHGg\",\"ATD:!DKKH-F=q\\'AD(ek%@;]aR\",\"?XIbjG5\";\"A7]4mB)\",\"?XIks@K\",\"6Xb%L3Zn\",\"<-2e^DJ3^+@K\",\"887%pLMe56B]6RoBcoo[@;[2V\";\"BQS?8F#ks-Eaa\/EB5)I$F^fK7\",\":;`fDB-9S#\\\\ts?g;f$Ao+@G,!\";\"?XIMbA7]u\",\"6Z6dZE\\\\d\";\"Ea`irDf&EpEbTE(\",\"7<3EeEZek1A7[eE\";\"?XI;]DI[*s\",\";Is<OEcbs\"}local function s(Y)return N[Y-(52230+13092)]end for Y,G in ipairs({{-619078+619079;832931+-832769},{(-267195+696883)-429687,-1029826-(-1029839)},{(1575572-863398)+-712160;(((-449356-(2092+46118))-(-640414))+(-548558+403450))-(-2422)}})do while G[209703-209702]<G[(-745403+182684)-(-562721)]do N[G[-513288-(-513289)]],N[G[((342082+(336298-305640))-43508)-329230]],G[-247329+247330],G[-925514+925516]=N[G[768655-768653]],N[G[447324-447323]],G[-449857-(586377-1036235)]+(-363018-(-363019)),G[-357968+(-227899+585869)]-((-194025+((-166929+-863408)+1505896))+-281533)end end do local Y=N local G={}local function s(Y)local G={}local N=(1006929-(875443+-255312))+-386797 local s=#Y while N<=s do local r=string.sub(Y,N,N)if r==\"z\"then table.insert(G,string.char(-267219+((483883-425291)+208627),1022140+-1022140,(((-737408+(927920+119123))-(193376-(-477109)))+(442852+-484739))+402737,(-263547-(-43476))-((((1320426-706879)+-1143834)-(-854422))-544206)))N=N+(-1032100-(-1032101))elseif r:match(\"%s\")then N=N+(-569414-(-569415))else local r={}local n=401819-401819 while n<-568724-(-568729)and N+n<=s do local G=string.sub(Y,N+n,N+n)if G==\"z\"or G==\" \"or G==\"\\n\"or G==\"\\r\"then break end r[#r+(-95731+95732)]=G n=n+(-889816+(725802+164015))end local d=#r for Y=d+(-829446-(-829447)),-34184-(-34189),660144-(1387973-727830)do r[#r+(((-97365+772584)+-1095506)+420288)]=\"u\"end local h=600937+(-162704-438233)for Y=-1023786+(-773969+(2119185-321429)),799328-799323,-736252-(-736253)do h=h*((43379+-414253)+370959)+(string.byte(r[Y])-(-495482-(-495515)))end local c=d-(-944753-(-944754))for Y=590929+-590926,(145171+-145168)-(c-(((-194205+296441)-124159)+21924)),-854596-(-854595)do local N=math.floor(h\/(141760+-141504)^Y)%(-732819+733075)table.insert(G,string.char(N))end N=N+d end end return table.concat(G)end for G=510924-510923,#Y,900145+-900144 do local N=Y[G]if type(N)==\"string\"then Y[G]=s(N)end end end local G={}G[-67220-(-932116-(-864866))]=table[s(990505-925142)]do local Y={}Y[709397+(241443+-950839)]=true Y[(363674+97713)+(-1079390-(-618015))]=string[s(-567245+632715)]Y[170332-170324]=function()error(s(604117+-538737))end Y[81845-81841]=false Y[710034+-710028]=pcall(function()Y[121544+((121690+-991985)+748755)]=true end)and Y[870663-870659]Y[(-433959-153478)-(-587444)]=math[s((-859113+434382)-(-490120))]Y[-1030188+1030201]=table[s(-271415+336778)]Y[(-8404+688456)+-680047]=table and table[s(499154+-433697)]or unpack Y[(-154197-(-890701))-736490]=Y[-397901+397908]((-704445-(-1009552))-305104,-866294+866359)Y[917550+-917541]=296691+-296691 Y[(-382779-(-281903))-(-100878)]=975651+-975651 Y[955866+-955851]={pcall(function()local G={}G[-497723+497725]=((4630+308986)+7650560)-s(-912360+977736)^(-386426+7937050)return s(64194+(1036442-((-178413+1646490)-432835)))\/G[-424615+424617]end)}Y[-339865-(-339875)]=Y[483165+-483150][(484423+(1020413+-1416164))+(-507353+418683)]Y[-585434+585437]=tonumber((Y[(1118300-129521)-(527631-(-263865+-197271))](tostring(Y[195747+-195737]),s((1008386+-313701)+-629246)))())for G=((1218637-1041099)+-143211)+-34326,Y[756677-(1064389-307726)],(-387245-(-831925))-444679 do local N={}N[-1027076+1027079]=G N[865444-(-1001485+((-843835+518635)+(-581774+2773901)))]=math[s(281059+-215670)](-266631-(-266632),132005-131905)N[-208532-(-208536)]=Y[-297615-(-342089+44467)](-295717-(-295717),473375+(-157078-316042))N[-260153+260154]=Y[((357345+((-875295-(-380986))-(7747+785394)))-(-93553-((((-638417+(-657392+1783512))+(-1890330-(-491489)))+125390)+890324)))-(-731983)](-310127-(-310128),N[682627+-682625])N[-776312+776318]=Y[850156+(1043738+-1893887)](-1022992+1022993,644740+-644738)==-526237-(-526238)N[(-835275-194517)+1029800]=Y[-501023+((-333956+455262)+379727)]:gsub(s(-860351-(-925790)),s(482501+-417146)..(tostring(Y[(-967547-(-563879+-95259))+308416]((-906089+119966)-(101440+-887563),35286+-25286))..s(972485+-907130)))N[-367975+367980]={pcall(function()local G={}if Y[-596493+596500](-272231+272232,-280364+280366)==-868381+868382 or N[-146555+(-936804+1083362)]==Y[584033-(-923069+1507088)]then local G={}G[225252-225250]=tonumber((Y[-802412+802424](tostring(({pcall(function()local N={}N[218793+(-195301-23490)]=(8007486-212879)-s(701193-635840)^(10052061-(-547207))return s((77513-(-37359))+-49523)\/N[-305512-(-305514)]end)})[-263196+(780714-517516)]),s(279964-214525)))())Y[((1086065-357728)-(-300796))-1029132]=Y[-969453+(845977-(-962284+838807))]and Y[-352162-(34337+-386502)]==G[516467+-516465]end if N[(478449+-694841)-(-216398)]then error(N[185227+-185219],157831+-157831)end G[-174389+174390]={}for s=((-593161+(1898061-(-28215+660141)))-63101)+-609872,N[419218+-419216],305211-305210 do local r={}r[(-924562+705290)+((1992785-1048147)+(-950778+225413))]=s G[963726-(411950-(-551775))][r[-410155-(-410156)]]=Y[751849+-751842](650738+-650738,-59169+59424)end G[-308841+308842][N[(-454153+1335589)-((995100+-539188)+(-136671+562194))]]=N[607584+(-813809-(-206229))]return Y[(((35460+651390)+(932739-654949))-(1292208-693599))+(-652631+286605)](G[145188-145187])end)}if N[-428665+428671]then Y[504566-504565]=Y[(1032342-619700)-(-534271+946912)]and(N[-3317+3322][-356352-(-356353)]==false and N[-379087-(-379092)][((439227+-353521)+-388071)+(1253912-951545)]==N[800480+-800472])else Y[642479+-642478]=Y[-571418+571419]and N[240749-240744][-988937+988938]Y[-315468-(-315477)]=(Y[(-136619-(235393-(182636+-385447)))+574832]+N[(751167+-1666421)+915259][N[477282-477281]+(((943460+-1216147)+912405)-639717)])%(392916-392660)Y[-345768-(-345770)]=(Y[-139134+139136]+N[(-488666-(-1394355-(-938198)))+(593234+-560721)])%(-64220-((-566126+609976)+(-605657-(-497331))))end end Y[799831+-799830]=Y[724289+-724288]and Y[-399813-(-399822)]==Y[213570+-213568]if Y[-976650-(-976651)]then else repeat return(function()while true do l1,l2=l2,l1 Y[(24587-48353)-(-23774)]()end end)()until true while true do l2=Y[-871203+871210]((-869881-(-1042758))+(333832+-506708),-9767-(-9773))if l2>953461+(-594386-359073)then l2=tostring(l1)else l1=l2 end end return end end do local Y={}Y[(-663200-(-649088))-(-14125)]=true Y[-652697-(-652732)]=function()originalError({[s(454480-((1023668-1012400)-(-377866)))]=G[-272351+272381]({s(174677+-109264);s(((770141-(-370558-(-1046104)))-(-767627))+-796767),s(-562299-(-627686));s(-1003149+(-846669+1915299))})})while true do end end Y[689001+-688977]=function()originalError(G[275549-(1172644-897125)]({s(961460-896047);s((-803309-(-475479))-(-393163))})..math[s(-650493-(-715882))](500748-499748,-882638+892637))while true do end end Y[915835-915810]=function()originalError(function()return G[((239312+-347228)+675944)+-567998]({s(313370+-247957),s(266721-(1006767+-805455)),s(-938810-(-1004244))})end)while true do end end Y[-327921-(-327928)]={Y[-755993+756028],Y[27855-27831],Y[(586998-((-913380-(-358231))+867346))-274776]}Y[-380057+380094]=Y[908895+-908888][math[s((602347+(-265010-(-249723)))+(216251+-737922))](-305035+305036,#Y[578895+-578888])]Y[760302+-760273]=error Y[456115-456099]=pairs Y[(-538688-(-718970))-180261]=setmetatable Y[586704-586694]=getmetatable Y[-1036632-(-1036649)]=type Y[686246-((1294229-522055)+-85934)]=load Y[(-1549943-(-864127))+685818]=loadstring Y[(85544-(52934+631547))+598964]=pcall Y[-510633-(-510663)]=math[s(-201594-(-266983))]Y[262124+-262123]=xpcall Y[124073-124062]=debug Y[425051-425037]=debug and debug[s((802267+-1113377)+376577)]or nil Y[94589-94561]=package Y[735049-735034]=coroutine Y[387584-387539]=string Y[-925514-(-925552)]=math Y[(-168325-(-558022+1339837))-(-188908-761255)]=table Y[704961-704927]=os Y[-767705+767737]=io Y[(-695277+-238819)+934139]=file Y[879820+(-382114+(375290+(((-59060-(-468462-(-570175-(-38853))))+-687466)-63605)))]={}Y[173791-((-288218+223481)+((16224-589121)+811383))]={}for G,N in Y[895546-895530](_G)do local s={}s[(201724+737545)-939266],s[685844+-685843]=G,N Y[(661444-840996)+(230920+-51326)][s[-328873-(-328876)]]=s[(97344+-933774)-(-306478-529953)]end Y[403725-(512960+-109271)]=function(G)local N={}N[43925-43923]=G N[355372-355371]={[s(-778261-(-843591))]=N[596001-595999],[s(-687211-(-752691))]=function(G,N,r)local n={}n[-956635+956637],n[776800-776796],n[-469151-(-469154)]=G,N,r if Y[927839+(1023230+(616292+((-1437480-(-426326))+-1556165)))][n[604110-604106]]then Y[947964-947927]()else Y[426576+-426534][n[-699052-(-699056)]]=n[(236646-728003)-(-491360)]end end;[s(-392354+(87026+370802))]=false,[s(1063965-998565)]=function()Y[963583+(-725308-238238)]()end;[s(-1034683+(1319424-(-86902+306218)))]=s(-68528+133947),[s((-118525+-710879)+((-102256-829657)+1826782))]=function()Y[(287931-(-27251))+-315145]()end,[s(614001-548654)]=function()Y[((892378+(-823714+493124))+-69045)+-492706]()end,[s(-486474+(-107275+659193))]=function()Y[502613-502576]()end;[s(34337+31051)]=function()Y[668100+-668063]()end;[s(449460-384052)]=function()Y[-904041-(-904078)]()end;[s(416736-351325)]=function()Y[-766648+766685]()end;[s((-1007844+1087996)-14818)]=function()Y[-1031820-(-1031857)]()end,[s(-26056-(-406701-(-315174)))]=function()Y[-201463-(-201500)]()end,[s(-959093+((1217916-898690)+705315))]=function()Y[982975-982938]()end;[s(886218+-820894)]=function()Y[-847299+847336]()end,[s(-109787+175201)]=function()Y[1018577-(1246597-228057)]()end,[s(639222+(-848760+274955))]=function()Y[136348-136311]()end,[s((129868-51472)-13060)]=function()Y[-394805-(224656+-619498)]()end,[s(474919-409435)]=function()Y[-220162-(-220199)]()end;[s(448660-383183)]=function()Y[(274137-(-239225))+(-622887-(-109562))]()end,[s(-719302+(995679-210927))]=function()Y[88894-88857]()end;[s(-785125-(-850604))]=function()Y[-567859+567896]()end}return Y[27903-(52722+-24840)]({},N[259033+-259032])end Y[829765-829760][s((-1038753+1593535)-489441)]=function()for N,r in Y[-735283-(-735299)](_G)do local n={}n[541067+-541064],n[55662-55661]=N,r if Y[-5611+5628](n[709731+(-764407-(-54677))])==s(-395326-(-460712))then Y[931609-931567][n[(-361033-194172)-(-555208)]]=n[-880702+880703]end end _G=Y[-929814-(-929850)](Y[786009-785967])Y[107219+-107198](_G,{[s(130594+-65120)]=G[(-110747-932731)+(708859-(-334649))]({s((-449506+762153)+-247187);s(623306+-557901)})})end Y[-522907-(-522912)][s(-297941-(-363383))]=function(G)local N={}N[-766694-(-766696)]=G return Y[600+(50557+-51121)](N[-395845-((1324833-772255)-948425)])end Y[852559+-852554][s(771965-706522)]=function(G)local N={}N[-446836+446838]=G N[(-545715+(921584-(-255723)))+-631589]=function(...)return N[((-582923+736853)-((244741+-927230)+745200))-91217](...)end return Y[(-1346562-(-927742))-(63540+-482381)]({},{[s((241097+-565566)-(-389799))]=function(G,r)local n={}n[-184355-(-184356)],n[-59178+(662474+-603294)]=G,r if n[481725-(1191961-((-327082+(-921125+1646020))-(-312425)))]==s(277331+-211866)then return N[788550+-788547]else Y[-292323+292360]()end end,[s(880491-815011)]=function(G,N,r)Y[(-1048101+69298)-(-978840)]()end;[s(-505179+570653)]=false,[s(-991246+1056646)]=function()Y[-490697+(-155089+645823)]()end,[s(234548+-169123)]=s(605648+-540229),[s(794369+-728904)]=function()Y[(-789482-(-915735))+-126216]()end;[s((479315+(-711126+881942))+-584784)]=function()Y[869418-869381]()end;[s((1006152+-1873479)+932771)]=function()Y[569593-569556]()end,[s(327977-262589)]=function()Y[156016+-155979]()end,[s(1034913+-969505)]=function()Y[151367+-151330]()end})end if error~=Y[((((589255+(140046+-1807619))-672834)-(-953382))+1762426)+(-1611497-(-646870))]or pairs~=Y[(1000081+-1492192)+492127]or setmetatable~=Y[-536587+536608]or getmetatable~=Y[(647688+(1134345-741531))+-1040492]or type~=Y[-136552-(-136569)]or load~=Y[-903745-(-903751)]or loadstring~=Y[((1152525-991764)-909664)-(-724639-24266)]or pcall~=Y[-566052-(-566079)]or xpcall~=Y[758634-758633]or debug~=Y[-800563-(-967223-(-166649))]or package~=Y[474943+-474915]or coroutine~=Y[-180544+180559]or string~=Y[5414+-5369]or math~=Y[786774+-786736]or table~=Y[-1041350-(-1041373)]then Y[242858+-242821]()end if pcall~=Y[(-800291+(-64192-(-203862-(-76089))))+736737]or math[s(558840-493451)]~=Y[(-878790-(-632147))+(902209-(1346699-(26502-(-664661))))]then Y[457079+(440762-897804)]()end Y[(-119459+-455590)-(-575057)]={s(1101488-1036123),s((596703-(-291245))-(689760+132735)),s((659302-901532)+(-699487+(122701-(-884385))));s(934744+-869421)}for G,N in ipairs(Y[-73724-(-73732)])do local r={}r[34134+-34131],r[(-433702-(-581802))+-148098]=G,N if _G[r[-506474+506476]]~=Y[328225-328183][r[-151235+(-563397-(-714634))]]then Y[-866082-(-866119)]()end end Y[-740914+740955],Y[451114+-451070]=pcall(Y[-569513+569524][s(229609-(535335-371166))])if Y[-911992+912033]then if Y[-297041+297085]then Y[-354068-(-354105)]()end end Y[624309-(-252866+877163)]=string[s(-801881-(-867351))]Y[-543458+(8696+534801)],Y[((-314392-397486)+1190314)-478390]=pcall(main)for G,N in ipairs(Y[790663-(-375560+1166215)])do local s={}s[-33730+(((-328410-321143)-28376)+711660)],s[(809458-298620)+-510835]=G,N if getmetatable(_G[s[-80956-(-952965+872006)]])~=getmetatable(Y[29492-29450][s[-56548-(-56551)]])then Y[196181-196144]()end end if Y[-19568-(-19579)]and Y[(-490983-(-269942))+((-1181638-(-396697-239178))+766818)]then local G={}G[-815513+815515]={Y[-710788-(-710804)],Y[-577454-(-577488)][s(-737860+803217)]or Y[(-1382301-(-885138))+497197][s(376552+-311155)],Y[(-371960-(-162096))+(-866657+1076544)][s(612510+(-582973+35807))]}for N,r in Y[-406619+406635](G[94795-94793])do local n={}n[145329+-145326],n[-1044070-(-1044071)]=N,r if n[-158983-(-158984)]then local G={}G[-259836-(-259837)]=Y[977842+-977828](n[(922711+-1461006)+538296],s(1080054-1014616))if G[7342-7341]and G[(-1043170+806728)-(204685-441128)][s(-1000616+1065983)]~=s(181138+-115702)then Y[83486-(-311150+394599)]()end end end G[(-666851-36982)-(-703837)]=Y[(-829564-(837148+-1865554))+-198828](519447+-519446,s(-620046+(771699-86215)))if not G[787107-787103]then Y[960859+-960822]()end G[422117-422116]=Y[-419429+419443](Y[(-950604-(-813096))-(-137524)],s(-697930+763368))G[-882001-(-882004)]=Y[933562-933548](function() end,s((571560+((382097+707347)-(480601-(-1265211-(395839+(-31532+-1073181))))))+-558628))if G[-476235-(-476236)][s(-835697-(-1948296-(598147+((-1589732-874139)-(-818492)))))]==G[699863-699860][s(826651-(598741-(-162543)))]then Y[536498+-536461]()end end Y[-849589-(-849593)]=false Y[-303879-(-303905)]=Y[661617+-661590](function()Y[910098+-910094]=true end)and Y[411717+-411713]Y[789616+-789576]=math[s(-696173-(-761562))]Y[12260+-12227]=table[s(-735821-(-801184))]Y[-592097-(-592117)]=table and table[s(-147386+212843)]or unpack n=Y[((200204-(-1023181+1623541))-262320)+662506](194962-194959,538195+-538130)if n<(-797942+1215896)-(-798349+1216300)or n>955951-((-1541867-(-617120))+((201175-(-618024))+1061434))then local G={}G[-134799-(-134801)]=Y[333296+((312216+-385692)-259780)](223743-223742,(527882+-1283398)+17532732.0)-RandomStrings[s(383721-318389)]()^Y[-821842-(-821882)]((-761685-13623)+775309,128638+16648578.0)return RandomStrings[s(-217090+(-416452+698874))]()\/G[(1349301-632659)-(1632882-916242)]end Y[-150376+150379]=(-990697-(-542697))+448000 Y[-45427-(-45446)]=699297+-699297 Y[(-1389624-(-1034216))+355417]={pcall(function()local G={}G[((-707570-(-400779))-(-540397))+-233605]=Y[469405-469365](301914-301913,696030+(17098875.0-1017689))-RandomStrings[s(-461885+527217)]()^Y[-305682-(-305722)](-570108-(-570109),(17279085.0-(-185450-(-1014356)))-(-327037))return RandomStrings[s(815561-750229)]()\/G[66643-((-1070217-(-783782+-47322))-(-305755))]end)}Y[-750847-(-750878)]=Y[(1233735-527463)+((1365599-372342)+-1699520)][-924894+924896]Y[-1010427+1010449]=tonumber((Y[-562169-(-562181)](tostring(Y[107258+-107227]),s(((458713-473677)+103505)-23102)))())for G=166410+-166409,279468-((406408+221306)-348346),-81058-(-81059)do local N={}N[(-1039937+294946)+744992]=G N[-845299-(-1201021-(-355717))]=63993+-63893 N[-943771-(-943777)]=N[-158282+158283]%(-294283+294539)N[786752-786744]=N[-950993-(-950994)]%N[832995+-832990]+(-812757-(-812758))N[-476002+476006]=N[134161+-134160]%((934426+-1365009)-(232838-(1508584-845161)))==(-8316-(-442377))+-434061 N[452694+(-941889+489197)]=Y[305144+-305113]:gsub(s(-197937-(-263376)),s(-1032315+1097670)..(tostring(Y[134928-134888](437481+(-877404-(-439923)),875650+-865650))..s(-644039+709394)))N[(((1596058-(-577819+1586534))-(-739766+(1746131-971330)))-(-329709))-882010]={pcall(function()local G={}if Y[501239-501199](-786141-(-786142),(1116329-(1504944-477525))-88908)==675176+-675175 or N[-653204-(-653205)]==n then local G={}G[-56855-(-56856)]=tonumber((Y[546514+-546502](tostring(({pcall(function()local N={}N[218379+-218377]=Y[1041769-1041729](987120-987119,16662843.0-(-114373))-RandomStrings[s(451056-385724)]()^Y[70694+-70654](-362383+362384,16943967.0-166751)return RandomStrings[s(39062-(-26270))]()\/N[(((-580156+1811399)-984950)+281602)-(1296536-(1497287-728644))]end)})[(-59369+(-207857-(-752900+566620)))+80948]),s(737975-672536)))())Y[((-1003518+1395783)+-1149572)+757320]=Y[(-299821-(-540428))-240594]and Y[189759+-189737]==G[-994552+994553]end if N[-808086-(157403+-965493)]then error(N[-550231+550233],-541155+541155)end G[-173747-(-173749)]={}for s=600722-600721,N[-1006497+1006502],(138068-289564)+151497 do local r={}r[-500013-(-500015)]=s G[445586+-445584][r[710772+-710770]]=Y[15405+-15365](-950149+950149,324740-324485)end G[-1031003-(-1031005)][N[-92303-(-92311)]]=N[-675036-(-675042)]return Y[-852484-(-852504)](G[(575050+-40224)-(-51867+586691)])end)}if N[-197975-(-197979)]then Y[-462266+462279]=Y[564085+-564072]and(N[513175-513168][(300745-(-492808))+-793552]==false and N[-77623-(-77630)][-861180+(-451405+1312587)]==N[677724-677722])else Y[761434+-761421]=Y[69990+(-847072+777095)]and N[-177036-(-177043)][-1020927-(-1020928)]Y[-154482+154485]=(Y[-222559-(-222562)]+N[-1030790+1030797][N[(508704+-242705)-((-393704+(1857391-914090))+-283606)]+(360457+(-392558-(-32102)))])%(751937+-751681)Y[357052-357033]=(Y[(340085+629652)+(-1892792-(-109282+-813792))]+N[-513520-(-311537-201989)])%(1027753-1027497)end end Y[-882591+882604]=Y[-439586+439599]and Y[-266670-(-266673)]==Y[508948-508929]if Y[-964571-(-964584)]then else repeat return(function()Y[-722742-(-619727+-103052)]()end)()until true return end end G[-820784-(-820817)]=game:GetService(s(883545-(-540854+1359007)))G[772009-772008]=G[913938-913905]:FindFirstChild(s(-509314-(-574718)))G[439635+-439629]=game:GetService(s(680794+-615402))G[(-1509767-(-716969))-(-792812)]=G[(-199193-(-997871))-(912278-113606)][s(-79119-(-144523))]:Destroy()G[87094-87086]=game:HttpGet(G[(-131815+796063)+(-1147189-(427048-910019))]({s(468046-402718),s((343641+701556)+(447407+(-1856212-(-429091)))),s(-725711+791063),s(((-1134187-(-1040671))+-334252)+493229)}),true)G[744440-744424]=(loadstring(G[-106448-(680327-786783)]))()G[-411552-((-1039197+1472227)+-844584)]=G[-256860+(163324-(-93552))]:CreateWindow(s(-7436+72762))task[s(-905281+970619)](function(Y,N,r,n,d)tick()task[s((-540146-58236)+(-929788+1593542))]()tick()task[s(13544-(-51828))]()tick()task[s(-914208-(-979580))]()tick()task[s((402979+-1006446)-(883976+-1552815))]()tick()task[s(422104+-356732)]()tick()task[s(104341-38969)]()tick()task[s((603253+-1064619)+526738)]()tick()task[s(-554718+((324687-844145)+1139548))]()tick()task[s(-341101-(-406473))]()tick()task[s(383181+-317809)]()tick()task[s(322598+-257226)]()tick()task[s(-461652+527024)]()tick()task[s((311898+-520627)+274101)]()tick()task[s(399377+-334005)]()tick()task[s((1869729-1012605)+-791752)]()tick()task[s(666336-600964)]()tick()task[s(-764046-(-829418))]()tick()task[s(-603581+668953)]()tick()task[s((348474-514528)+231426)]()tick()task[s(335604-270232)]()tick()task[s((942945-453614)-423959)]()tick()task[s(914639-849267)]()tick()task[s(599516+-534144)]()tick()task[s(-930131-(-995503))]()tick()task[s(646368+-580996)]()tick()task[s((714014+(-1479544-((-34741-(-73644))+-43400)))-(-826405))]()tick()task[s(-611534-(-676906))]()tick()task[s((1271734-896547)-309815)]()tick()task[s((-855509-(-625314))+295567)]()tick()task[s((-856139+(449537+743049))-271075)]()tick()task[s(44240-(-21132))]()tick()task[s((-71028-(895087+((-763985+(211200-(-446415+1163320)))-(-926467-((-156822-825833)-(-271352+62828))))))-85867)]()tick()task[s(-417479-(-482851))]()tick()task[s(346896+-281524)]()tick()task[s(984122+-918750)]()tick()task[s(613595+-548223)]()tick()task[s(-127331-(-192703))]()tick()task[s(786629-721257)]()tick()task[s(963066-897694)]()tick()task[s(-717431-(-782803))]()tick()task[s(-357935-(-423307))]()tick()task[s(((303394+-473448)-(-778049))+-542623)]()tick()task[s(-540464+605836)]()tick()task[s((117687+-842311)+789996)]()tick()task[s(-456809+522181)]()tick()task[s(1097602-1032230)]()tick()task[s(838195+-772823)]()tick()task[s(-656848-(-722220))]()tick()task[s(1028246+-962874)]()tick()task[s(-603045+((1634624-374630)-591577))]()tick()task[s((1035160-((-1018331+(-37743-(-847864)))+(213744-(-253401))))+-710853)]()tick()task[s(-780541-(-845913))]()tick()task[s(-524069-(-589441))]()tick()task[s(182440-117068)]()tick()task[s((-219929+758261)+-472960)]()tick()task[s((((-239754+(1300209-(-187404)))-915500)+-396052)+129065)]()tick()task[s(742339+-676967)]()tick()task[s(15197-(412286-462461))]()tick()task[s(159770-94398)]()tick()task[s(-938108+1003480)]()tick()task[s(-716925-(-782297))]()tick()task[s(976845+-911473)]()tick()task[s(-640579-(228952+-934903))]()tick()task[s((789086+-871770)+((((-737673+491017)-32065)+-386589)-(162684+-976050)))]()tick()task[s(-481717-(-547089))]()tick()task[s(-230911-(-296283))]()tick()task[s(747895-682523)]()tick()task[s(585022-519650)]()tick()task[s((35265-(-485162+(908945-(92838+(1003641+-1049729)))))+407140)]()tick()task[s(-748105+813477)]()tick()task[s(269384-204012)]()tick()task[s((((-152054+-708496)+1332818)-(8644+(623493-944982)))-(754670+-34929))]()tick()task[s(-596510+661882)]()tick()task[s(-300611+365983)]()tick()task[s(671039+-605667)]()tick()task[s(398366+-332994)]()tick()task[s(((-392826-265179)+(2301608-741291))+((-2170328-(-864462-(-173171)))-(-642097)))]()tick()task[s(-139419-(-204791))]()tick()task[s(894851+-829479)]()tick()task[s(526238+-460866)]()tick()task[s(249411+-184039)]()tick()task[s(390408+-325036)]()tick()task[s(550839+-485467)]()tick()task[s(260668-195296)]()tick()task[s(284111+(-438251-(-219512)))]()tick()task[s(426942+(-549273+187703))]()tick()task[s(71717-6345)]()tick()task[s((1359034-(962204-485508))+(169382+-986348))]()tick()task[s(-563705+629077)]()tick()task[s(506015-440643)]()tick()task[s(685758+-620386)]()tick()task[s(-657843-(-723215))]()tick()task[s(399643-334271)]()tick()task[s(1030557-965185)]()tick()task[s(-520665-(-586037))]()tick()task[s(-386409-(-451781))]()tick()task[s(258398-(-791742+984768))]()tick()task[s(-109566+174938)]()tick()task[s((380908+-678725)-(-363189))]()tick()task[s(-527319+592691)]()tick()task[s((-1263331-(-893608))-(-435095))]()tick()task[s((-7846+291253)-218035)]()tick()task[s(-709713+775085)]()tick()task[s(874461+((-676301+((743809-499141)-((41206-932306)-(-380935))))+-887621))]()tick()task[s(-873466+938838)]()tick()task[s(931209-865837)]()tick()task[s(35241+30131)]()tick()task[s(-221842-(-287214))]()tick()task[s(466837+-401465)]()tick()task[s(164764+-99392)]()tick()task[s(-727772-(-793144))]()tick()task[s(821028-755656)]()tick()task[s((1022748-(1013030+-787392))-(870304-138566))]()tick()task[s(-505918-(-164671-406619))]()tick()task[s(273309+-207937)]()tick()task[s(279325-213953)]()tick()task[s(525433+-460061)]()tick()task[s(1038735-973363)]()tick()task[s(-276100+341472)]()tick()task[s((-202337-((-835253-(-126290))-(-871160)))-(-429906))]()tick()task[s(-279732-(-345104))]()tick()task[s(935534+-870162)]()tick()task[s(298154-232782)]()tick()task[s(212988+-147616)]()tick()task[s(-439131-(-504503))]()tick()task[s(-544638-(-610010))]()tick()task[s((-1515380-(-666735))+914017)]()tick()task[s(1042245+-976873)]()tick()task[s(299384+-234012)]()tick()task[s((219740+-675749)+521381)]()tick()task[s(175608+-110236)]()tick()task[s(-327411-(-392783))]()tick()task[s((433617-(-136829))-505074)]()tick()task[s(641178+(89983-665789))]()tick()task[s(-839030-(-904402))]()tick()task[s(35677+29695)]()tick()task[s(445784-380412)]()tick()task[s(852394+-787022)]()tick()task[s(582277-516905)]()tick()task[s(-547070-(-612442))]()tick()task[s((680974-302992)+-312610)]()tick()task[s(-461420+(681082+-154290))]()tick()task[s(295971+-230599)]()tick()task[s(1019600+-954228)]()tick()task[s(979336+-913964)]()tick()task[s(-417326+482698)]()tick()task[s(-186163-(-603634-(-352099)))]()tick()task[s(-690815-(-756187))]()tick()task[s(-634566+699938)]()end)G[(-369747-(-236740))+133018]=game:GetService(s(-258568+324030))G[694605-694595]=game:GetService(s((519859+(298131+-1381805))-(-218421+(-564902+(-577081+(1436210-705039))))))G[(-789970-(-1980))+788025]=game[s(762485-697023)][s(946357-880882)][s(-95493+160863)]:WaitForChild(s(703516+-638081))game[s((1305035-900748)+-338825)][s(474202-408727)][s(-620601+685974)]:Connect(function(Y,N,r,n,d)local h={}h[272304+-272303],h[(-1408041-(-685407))+722640],h[-185072-(-185076)],h[-71905-(-71910)],h[73128-73126]=Y,N,r,n,d h[-37922-(-37929)]=game[s(293774+((-39122+-153372)-(-723956+((301056-(649400-880554))-(-227564)))))][s(-865601-(-931076))][s(433050-367680)]:WaitForChild(s(-410363+475798))end)G[541720-541703]=(game:GetService(s(1029333-(-245266+((712474+1045412)-548724)))))[s(251165+-185769)][s((-475708+218342)-(-322796))]:GetChildren()G[-418077-(-418089)]=G[((-544716+-158826)-(-718337+(-288052-((154440+-866053)-(-53772)))))+354996]:AddButton({[s(-922429+987810)]=s(871179+(281466+(-519207-567982)));[s(-874296-(-939760))]=function(Y,N,r,n,d)local h={}h[345594+-345592],h[(1413316-571334)+-841974],h[-377792-(-377798)],h[47429-47428],h[910153-910149]=Y,N,r,n,d h[431263-431254]=(game:GetService(s(431303+-365866)))[s(-381334+446688)][s(-697175+762518)]((game:GetService(s(370979-305542)))[s((826724+-823562)+62192)])h[(-749932-(-356774))-(-393161)]=v14[s((((763617+-830502)-471127)+1211512)-608077)]-h[1020001+-1019992][s(165063-99640)]h[5541+-5534]=h[431037+-431034][s(-171090-(394916+-631381))]<math[s(-837223-(-902587))]end})G[854297+-854292]=G[83122-83120]:AddButton({[s(1033136-967755)]=s(-602984-(-668430));[s((-672603+-1329)-(-739396))]=function(Y,N,r,n,d)local h={}h[((-728665-(-680633))+938832)-890798],h[-181416-(-181423)],h[849154-849150],h[-712475-(-712480)],h[-793732-(-793733)]=Y,N,r,n,d h[595374-595365]=(game:GetService(s(942847+-877410)))[s(-228522+293876)][s(261511+-196168)]((game:GetService(s((-944542-(-708501))-(-301478))))[s(((-664075+464467)-(-365166))+-100204)])h[(-204104-836096)-(-1040203)]=v14[s(-121171+186594)]-h[-813594+(-549052+(667008-(-695647)))][s(-444740+510163)]h[1033836+-1033828]=h[-68443-(-68446)][s(243072+(-464650-(-286953)))]<math[s(182415-117051)]end})G[-13407-(-13436)]=game:GetService(s(-294106+359568))G[-104434-(-104443)]=G[(((-653492-(-128862))-244385)+435769)+333248]:AddButton({[s(-454777-(-520158))]=s(-43196-(-108603));[s(364340+-298876)]=function(Y,N)game[s(-380303+445765)][s((659060-(-108332))+-701917)][G[427761-427731]({s(360479+-295089),s(-644555+709967)})]=-240765.5-(-1195447-(-954681))game[s(-330901-(-396363))][s((245313-115371)+-64467)][G[-724401+724431]({s(340109-274646),s(-570442+635854)})]=-217263-(-217763)end,[s((-882429-(-801831))-(-145956))]=s(-657757-(-723131))})G[-169898-(-169905)]=G[799545-799543]:AddToggle({[s(106476-41095)]=s(192443-(-160643+287688)),[s(-221560-(-287024))]=function(Y,N,r,n,d)local h={}h[858075-(969238+-111168)],h[((-220975+((163343-(-446556))-(-532313+1421250)))-(-230973))-(-269043)],h[-647855+647862],h[-256807-(-256809)],h[330701+-330695]=Y,N,r,n,d print(s(-715981-(-200103-581306)),h[715025+-715020])h[721841+-721840]=h[608176+-608171]()end;[s(958399-893014)]=false;[s(-576404-(-1105917-(-464155)))]=s(-395986-(-461392))})_G[s(-507020+(((-648824-(112897-792625))+(-180818+(794946-(569506-(-229283)))))+(614264-(-111881))))]=function(Y,N)spawn(function(Y,G)local N={}N[656518+-656382],N[-48457-(-48727)]=Y,G wait()N[842621-842320]=(game:GetService(s(-825845-(-891282))))[s(-928775+994146)]:GetDescendants()N[-390172-(-390217)]=(game:GetService(s(((-601056-142085)+1224553)+-415975)))[s(-765080-(-830473))]:GetDescendants()wait((-1691690-(-813716))+(1701482-(388759+434747)))wait()N[274002-273741]=(game:GetService(s((-453604+580118)-(538869+(275870+-753662)))))[s(-823157-(-187410-701118))]:GetDescendants()N[-321032+321117]=(game:GetService(s(844007+-778570)))[s(-905972+971365)]:GetDescendants()wait(-527561+527563)wait()N[-927086-(-927327)]=(game:GetService(s(780012-714575)))[s(618307+-552936)]:GetDescendants()N[-850723-(-435110-(-926052+1341804))]=(game:GetService(s(((-840623+552802)-669947)-(-1023205))))[s((610526+-1268910)-(-723777))]:GetDescendants()wait(159878+(-537804+377928))wait()N[(((-830047+(-529204+1522896))-20268)+-872533)+729378]=(game:GetService(s(919991+-854554)))[s(937499+-872128)]:GetDescendants()N[655586+-655321]=(game:GetService(s(30637+34800)))[s((40741-(273965-(-281952-(-738325))))+-157756)]:GetDescendants()wait((-871850-5799)+877651)wait()N[496184-496168]=(game:GetService(s(467599+-402162)))[s((1302798-(557063+238062))+-442302)]:GetDescendants()N[-15901+(-65269+81320)]=(game:GetService(s(78852+-13415)))[s(-453234-(-518627))]:GetDescendants()wait(762988-762986)wait()N[433205-433146]=(game:GetService(s(982004+-916567)))[s((276492-(-119118))+-330239)]:GetDescendants()N[1005032-1004974]=(game:GetService(s(693352+-627915)))[s(589381-523988)]:GetDescendants()wait(221700-221698)wait()N[532723+((256555+-567089)+-221996)]=(game:GetService(s(73556-8119)))[s(-749363+814734)]:GetDescendants()N[(1725043-1030920)+(-547346+-146657)]=(game:GetService(s(-417121-(-482558))))[s(329667+-264274)]:GetDescendants()wait(-612264-(145234-757500))wait()N[393789-(-786969+(877595-((-218560+849781)-934303)))]=(game:GetService(s(-499578-(-565015))))[s(-1018651+1084022)]:GetDescendants()N[-548627-(-548673)]=(game:GetService(s(-372196-(-437633))))[s(-651382+(965518-248743))]:GetDescendants()wait(455694+-455692)wait()N[-298757+298990]=(game:GetService(s(68369-2932)))[s((90993+86591)-(637911-525698))]:GetDescendants()N[-360251-(-360298)]=(game:GetService(s(-490170+555607)))[s(-909199+974592)]:GetDescendants()wait(-822710+822712)wait()N[-104103-(-104172)]=(game:GetService(s(372726-307289)))[s(-261893+327264)]:GetDescendants()N[-196264+196351]=(game:GetService(s((-1024746+(1052799-512905))+550289)))[s(-343578-(-408971))]:GetDescendants()wait(176611+(522455+(-586083+(-995457+((341167-(((-800922+895078)-(-1028321-(-559806-(-218248))))+(-71386+-589336)))+661506)))))wait()N[894368+-894082]=(game:GetService(s(779806+(-998744+((-498466+1229677)+-446836)))))[s((343950-(((857588+1212682)-882875)-752896))+155920)]:GetDescendants()N[91205-(345436+-254466)]=(game:GetService(s(734474-669037)))[s((138984+-1057205)-(-983614))]:GetDescendants()wait((-390231+(668183+(-863031+1023172)))-438091)wait()N[479689-479533]=(game:GetService(s(-1024025+1089462)))[s(-305179-(-700263-(-329713)))]:GetDescendants()N[639574-639286]=(game:GetService(s(((942113-981874)+82543)-(-22655))))[s((969732-(1044964-(208113+(-939902+1515100))))-642686)]:GetDescendants()wait(201565-(1033686-(((591239+-1186943)-(-983885))+443942)))wait()N[527917-527674]=(game:GetService(s(-383422-(-448859))))[s(-767244-(-36383+(-1793685-(-997453))))]:GetDescendants()N[160042+-159959]=(game:GetService(s((294186+413456)+-642205)))[s(-135600-(-200993))]:GetDescendants()wait(464807+-464805)wait()N[663117+-663082]=(game:GetService(s(-954097-((-630545+(-79660-242300))+(-1021193-(-954164))))))[s(532583+-467212)]:GetDescendants()N[-309398-(-309505)]=(game:GetService(s(-476633+542070)))[s(-654196-(-719589))]:GetDescendants()wait(-551433-(-551435))wait()N[(-1216997-(-472815))+744433]=(game:GetService(s(946940-881503)))[s(((2049922-392710)-731968)+-859873)]:GetDescendants()N[(488485-(-436853))+(-1695021-(-769707))]=(game:GetService(s(20597+44840)))[s(436385+-370992)]:GetDescendants()wait(-91378+91380)wait()N[-575990+576160]=(game:GetService(s((224112-56060)+-102615)))[s(455291-389920)]:GetDescendants()N[((-1749015-(-937175))+(-254025-(-349031)))+(1137474-420442)]=(game:GetService(s(-774114+839551)))[s(-326266+391659)]:GetDescendants()wait(954383-954381)wait()N[-630494-(-630743)]=(game:GetService(s(-547235+612672)))[s(207329+-141958)]:GetDescendants()N[((542899+-1064379)+328112)+193666]=(game:GetService(s(385413+-319976)))[s(-441160+506553)]:GetDescendants()wait((-689705-(-440054))-(-249653))wait()N[-483128+483279]=(game:GetService(s(-957936-(-562615-460758))))[s(228144-162773)]:GetDescendants()N[717924-717779]=(game:GetService(s(-911972-(-977409))))[s(282686-(838965+-621672))]:GetDescendants()wait(-939718+939720)wait()N[-845687-(-628859-217084)]=(game:GetService(s(-909529+974966)))[s((-147673+774618)+-561574)]:GetDescendants()N[274485+-274351]=(game:GetService(s((-995083-(-327641))+732879)))[s(-406430+471823)]:GetDescendants()wait(119720-119718)wait()N[964516+-964389]=(game:GetService(s(-727162-(-792599))))[s((938730+-1689693)+816334)]:GetDescendants()N[731909-731696]=(game:GetService(s(-980390-(-1045827))))[s(161645+-96252)]:GetDescendants()wait((-1453214-(-1035112))+418104)wait()N[-184879-(-184881)]=(game:GetService(s(1111083-1045646)))[s(-355545+((-168068+-258416)+847400))]:GetDescendants()N[-637605-(-637711)]=(game:GetService(s(-68784+134221)))[s(621577+(((-921926+(2303890-397508))+-1006770)-(-394792+928662)))]:GetDescendants()wait(-148478+(620642-(-977192+1449354)))wait()N[40971-40814]=(game:GetService(s(487536+(886587+-1308686))))[s(921774+(-578355+((-202351-(-696895))-(679287+93305))))]:GetDescendants()N[1011681+-1011515]=(game:GetService(s(-444828+510265)))[s(110038+-44645)]:GetDescendants()wait(56625-56623)wait()N[(483816+(-375788-1012368))+904429]=(game:GetService(s(-569061-(69268-703766))))[s(644608-579237)]:GetDescendants()N[-1042578-(-1042725)]=(game:GetService(s(118843+-53406)))[s(((875927-(-51526))+(-196731+430))-(68863-(-596896)))]:GetDescendants()wait(999884-999882)wait()N[984522+(-694234+(206145-496203))]=(game:GetService(s(832471-767034)))[s(((59726+-147065)+887369)-734659)]:GetDescendants()N[835498-835361]=(game:GetService(s(790854-725417)))[s(68386+-2993)]:GetDescendants()wait(-773258-(-773260))wait()N[481934-481717]=(game:GetService(s(579383+-513946)))[s(-273722+339093)]:GetDescendants()N[((114239+-815854)+244955)-(-456703)]=(game:GetService(s(319521+(431245-685329))))[s((-344044-(-972003))+-562566)]:GetDescendants()wait(-947703+947705)wait()N[-1022308-(-1022333)]=(game:GetService(s(593417+-527980)))[s(((449926+-1056652)-(-107614))-(-564483))]:GetDescendants()N[-295768-(-296008)]=(game:GetService(s(822405-756968)))[s(724672-659279)]:GetDescendants()wait(-766033+((267471-(-323787))-(-174777)))wait()N[463437+-463305]=(game:GetService(s(-646868-(-712305))))[s((672493+-637094)+29972)]:GetDescendants()N[-1011939-(-1012102)]=(game:GetService(s(-340428+405865)))[s(-93884+159277)]:GetDescendants()wait(-38176+38178)wait()N[626023-626010]=(game:GetService(s(850079-784642)))[s((-425585+949246)+-458290)]:GetDescendants()N[(446621+-916926)+470555]=(game:GetService(s(245881+-180444)))[s((1337946-575796)+-696757)]:GetDescendants()wait(-456789+456791)wait()N[1014483-1014304]=(game:GetService(s((-504057-(-705341))+((1117409-1021592)-231664))))[s(((397832-923369)+1061063)+-470155)]:GetDescendants()N[980036+-979736]=(game:GetService(s(-470323+535760)))[s(-861221-(-926614))]:GetDescendants()wait(182738-182736)wait()N[603194-603081]=(game:GetService(s(-210517+(-42091+318045))))[s(-257822-((975554-969680)+-329067))]:GetDescendants()N[-52897+53064]=(game:GetService(s(38662-(-26775))))[s(218486-(232110-(-564201+643218)))]:GetDescendants()wait((-97874+(-431366+508915))+20327)wait()N[(584397+-561275)-22915]=(game:GetService(s(-494085+559522)))[s(-600428-(-665799))]:GetDescendants()N[-220791+220935]=(game:GetService(s(150710+((-679006+1462095)-((161859+600435)+106068)))))[s(((107663+-977331)+783232)-(-151829))]:GetDescendants()wait(457905-(851477-393574))wait()N[401823-401714]=(game:GetService(s(-561592-(999854+-1626883))))[s(348903+-283532)]:GetDescendants()N[-525357+525522]=(game:GetService(s(-523438+588875)))[s(-5823-(-71216))]:GetDescendants()wait(-821056+821058)wait()N[-918816+918912]=(game:GetService(s(118720+-53283)))[s(38339+((-870557+1271030)+-373441))]:GetDescendants()N[346015-345862]=(game:GetService(s(-830392+(-759581+1655410))))[s(40625+24768)]:GetDescendants()wait(((388938+169320)-584431)+26175)wait()N[277933-277900]=(game:GetService(s((-541108+953071)+(45282+-391808))))[s(-908540+973911)]:GetDescendants()N[642915-642622]=(game:GetService(s(-741668-(-807105))))[s(-151316-(-216709))]:GetDescendants()wait(529877+-529875)wait()N[40398-40177]=(game:GetService(s((59493-615709)-(-621653))))[s(787152-(-253753+975534))]:GetDescendants()N[-195980+196103]=(game:GetService(s(626181+-560744)))[s(22679+42714)]:GetDescendants()wait((258736-998701)-((-838617-152299)+250949))wait()N[-113528-(62969+-176618)]=(game:GetService(s((((358206-821563)+(383243+961061))+-1517263)+((((1899407-443151)-920543)+-282749)+448789))))[s(((-454904-379987)-(-645079))-(-255183))]:GetDescendants()N[342704-342662]=(game:GetService(s(8406-(-57031))))[s(-550256-(-615649))]:GetDescendants()wait(535726-(348863+186861))wait()N[-504903+504979]=(game:GetService(s(891540+-826103)))[s(((((713731+(-623317+550936))+-1785286)-(-712155))+647504)-150352)]:GetDescendants()N[240071-239782]=(game:GetService(s(346275-280838)))[s((-272758+421219)-((1030386+-464357)+(-1018439+535478)))]:GetDescendants()wait(156802+-156800)wait()N[-645773-(-645953)]=(game:GetService(s(-4094-(-69531))))[s(((-239777+919238)+(((-622475+-306980)+691545)+82256))+-458436)]:GetDescendants()N[(-233139-(264070+(-739201+89663)))+-152158]=(game:GetService(s(-969161-(-1034598))))[s(758430+-693037)]:GetDescendants()wait(-62385+62387)wait()N[(851600+-949419)+98104]=(game:GetService(s(-861317-(-926754))))[s(-958001-(((-596709+-339694)+214448)+-301417))]:GetDescendants()N[330234+-330146]=(game:GetService(s(-910063+((908923-640440)+707017))))[s(-117693+(-143445+326531))]:GetDescendants()wait((-859144-(-593126))-(-266020))wait()N[-589707+589941]=(game:GetService(s((766327+-1604567)-(-903677))))[s(-645003-(-710374))]:GetDescendants()N[-167668+(632949-465039)]=(game:GetService(s(-465566-(-531003))))[s(1037560+-972167)]:GetDescendants()wait(643406+(-966632+323228))wait()N[133582-133397]=(game:GetService(s(140625+-75188)))[s(-236994+302365)]:GetDescendants()N[-774273+774422]=(game:GetService(s((233023-(-623656))-791242)))[s(-401139-(-466532))]:GetDescendants()wait(-508873+508875)wait()N[-822929-(-823115)]=(game:GetService(s(927719-((71608+809116)-(-242-(-18684))))))[s(-81216+146587)]:GetDescendants()N[(436893-802004)-(-532109+166949)]=(game:GetService(s(-286968-((401697+-1715038)-(-960936)))))[s(425005+(((-309084+961143)+-917336)+-94335))]:GetDescendants()wait((-807168-(972485+-947821))-(-831834))wait()N[907593+(-375317+(-989383-(-457354)))]=(game:GetService(s(665041+-599604)))[s((356900+444039)-735568)]:GetDescendants()N[-425793+425844]=(game:GetService(s((344716+-661668)-(-382389))))[s(721173-655780)]:GetDescendants()wait(-592731+592733)wait()N[(-1146215-(-810281))+(-742419+1078544)]=(game:GetService(s(1017672+(((95300+(697544-388040))+-2350114)-(-993075)))))[s(517590-452219)]:GetDescendants()N[-94974+(((((-10721-71041)+540855)+-353901)+-301762)+291630)]=(game:GetService(s(-776668+(-197198-(-1039303)))))[s(312604-247211)]:GetDescendants()wait(-1039259+1039261)wait()N[341510-341474]=(game:GetService(s((151182-(-799816))-885561)))[s(-814218+879589)]:GetDescendants()N[-67902+((1419140-729901)-621219)]=(game:GetService(s(707892+-642455)))[s(236488+((650159+(446296+-1107311))-(145533-(-14706))))]:GetDescendants()wait(-563472+563474)wait()N[-956076-(-956151)]=(game:GetService(s(-776931-(-842368))))[s(1072592-1007221)]:GetDescendants()N[-685886-(-686165)]=(game:GetService(s(175100+-109663)))[s(-112582+177975)]:GetDescendants()wait((((-1403429-(-859045))+-270634)+100992)+714028)wait()N[-737491-(-737782)]=(game:GetService(s((-490885-(-745102))+-188780)))[s(1094268-1028897)]:GetDescendants()N[(-291129+-290539)-(-269332+-312604)]=(game:GetService(s((-244388+550743)+((841953-525604)-557267))))[s(672296-606903)]:GetDescendants()wait(-500073+500075)wait()N[(-549841-(744612+-838254))-(-165665+-290571)]=(game:GetService(s(-468147+533584)))[s((-75296-265300)+(-415362+821329))]:GetDescendants()N[-412112+412369]=(game:GetService(s((-816683+-25690)-(-907810))))[s(-377241+442634)]:GetDescendants()wait((-684799+1085527)+-400726)wait()N[23403-23231]=(game:GetService(s(-965314+1030751)))[s(-573187-(((898218+-584597)+110836)+-1063015))]:GetDescendants()N[649059+-648778]=(game:GetService(s(853208-787771)))[s(313688+-248295)]:GetDescendants()wait(-577895-(-577897))wait()N[1004354-1004159]=(game:GetService(s(((806438-998159)-(-372781))-115623)))[s(920499+-855128)]:GetDescendants()N[-76664-(-76917)]=(game:GetService(s(311692+(347030+-593285))))[s(392419-327026)]:GetDescendants()wait((611658-605498)+-6158)wait()N[-110365+110649]=(game:GetService(s((-11225+-537199)-(-437844+-176017))))[s((698022-200965)+-431686)]:GetDescendants()N[797112+-796935]=(game:GetService(s(320011+-254574)))[s(615195+-549802)]:GetDescendants()wait(-464434+(-144111-(-608547)))wait()N[962175+-961939]=(game:GetService(s(-17468+(206455-123550))))[s(-381808-(-447179))]:GetDescendants()N[(54219-(48209-983331))+-989334]=(game:GetService(s(-806210+((-65325-468101)+1405073))))[s(947455-882062)]:GetDescendants()wait((1184481-(554353+310597))-((1007579+-1303094)+615044))wait()N[(-668342+368660)+299697]=(game:GetService(s((1775824-(-998686+1785354))+(-41447-882272))))[s(-713337-(-778708))]:GetDescendants()N[476773-(-648261+1124933)]=(game:GetService(s(571038+((-171531-775346)-(-441276)))))[s(967679-902286)]:GetDescendants()wait(-581819+581821)wait()N[-483033-(-483123)]=(game:GetService(s(423388-357951)))[s(-785755-(-851126))]:GetDescendants()N[-940109+940250]=(game:GetService(s(924658+-859221)))[s(1027374+(-398656+(-554828+(-386938-(-378441)))))]:GetDescendants()wait((-270221-(-257861))+12362)wait()N[-705620-(-705631)]=(game:GetService(s(-103458-(-168895))))[s(-865347+930718)]:GetDescendants()N[-894678+894777]=(game:GetService(s(-387768-(307297-760502))))[s(-758822-(-824215))]:GetDescendants()wait(-945136+945138)wait()N[-838199+838496]=(game:GetService(s(-802973-(-868410))))[s(385696+-320325)]:GetDescendants()N[-1007167-(-1007265)]=(game:GetService(s((-1752419-(-971331))+846525)))[s(608643+-543250)]:GetDescendants()wait(-253462-(-253464))wait()N[409719+-409464]=(game:GetService(s((169263-(-131967))+-235793)))[s(-149739-(-215110))]:GetDescendants()N[-140656+140900]=(game:GetService(s(-230875+296312)))[s(294425+-229032)]:GetDescendants()wait(64012-(-804457-(-868467)))wait()N[(-917471+44651)+(-739502+1612464)]=(game:GetService(s(-910195-(-975632))))[s(761604+-696233)]:GetDescendants()N[((755208+((-546818-150157)+670531))-624284)+(722211-826614)]=(game:GetService(s(198583+-133146)))[s(852811+-787418)]:GetDescendants()wait(-454050+454052)wait()N[343920-343881]=(game:GetService(s(902354-836917)))[s(-565414-(-630785))]:GetDescendants()N[(-1027437+723952)-(-303590)]=(game:GetService(s(1003990-938553)))[s(770830+-705437)]:GetDescendants()wait(-354319-(901574+-1255895))wait()N[479458+(519183+-998563)]=(game:GetService(s(-349140-(-414577))))[s(-624043+689414)]:GetDescendants()N[-481162+481174]=(game:GetService(s(823958-758521)))[s(122694+-57301)]:GetDescendants()wait(975880+((1283068-670722)+-1588224))wait()N[(896340+-894243)+-1823]=(game:GetService(s((-1870694-(-932923))-(-1003208))))[s(-730071+795442)]:GetDescendants()N[-765842-(471530+-1237467)]=(game:GetService(s(-839161-(-904598))))[s(-534229-(-599622))]:GetDescendants()wait((((540531-(-2869))-(63961+(-877340+968913)))-(-386668))+-774532)wait()N[(293561+226908)-520307]=(game:GetService(s(-297744-(-363181))))[s(-745233+810604)]:GetDescendants()N[-100686-(-100751)]=(game:GetService(s(535199-(-745538+1215300))))[s(-730801-(-796194))]:GetDescendants()wait(724410-724408)wait()N[-188351+(-25649+214214)]=(game:GetService(s(329338+-263901)))[s((388393+(-1163961-(-946757)))+-105818)]:GetDescendants()N[974831-974734]=(game:GetService(s(-294244-(-359681))))[s(-848361+(((504415+238527)-308170)-(-478982)))]:GetDescendants()wait(435230+-435228)wait()N[(-698860+1555442)-856351]=(game:GetService(s(380005-314568)))[s(597922-532551)]:GetDescendants()N[-153076-(-153193)]=(game:GetService(s((-723074+((-206749-(-462486))-(-251773)))+281001)))[s(64171-(-1222))]:GetDescendants()wait(402401+-402399)wait()N[(354034+-892075)+538064]=(game:GetService(s(-547689+613126)))[s((-996842+1719007)+-656794)]:GetDescendants()N[(1002085+3486)-1005381]=(game:GetService(s(-661205-(-726642))))[s(-584669-(-650062))]:GetDescendants()wait((-690363+-230313)-(-920678))wait()N[((480196+-366042)-253574)+139470]=(game:GetService(s(783373-717936)))[s(-1029014+1094385)]:GetDescendants()N[417543+-417533]=(game:GetService(s(742338-(855460-178559))))[s(-264549+329942)]:GetDescendants()wait(-1041146+(1637504-596356))wait()N[-227555-(-227683)]=(game:GetService(s(-363165-(96601-525203))))[s((-573578+689750)+(896484+-947285))]:GetDescendants()N[611472-611296]=(game:GetService(s(((347733-(979716+(-165803+-647835)))-211194)-(-347206-(-252230)))))[s(993703+-928310)]:GetDescendants()wait(-165986+165988)wait()N[209884+-209709]=(game:GetService(s(-913529-(-978966))))[s(569856+(-703965+(458560-259080)))]:GetDescendants()N[-190013-((815507-228073)+-777672)]=(game:GetService(s(953151+-887714)))[s(1094820-((188292-((-148352+(-367824+-928524))-(-739004)))-(-135439)))]:GetDescendants()wait(215832+-215830)wait()N[-617985+618025]=(game:GetService(s(-930129-(-995566))))[s(245796-180425)]:GetDescendants()N[210623-210463]=(game:GetService(s((-462898+281946)+((-656507+86095)+816801))))[s(-113853-(-179246))]:GetDescendants()wait(-69423-(-299239-(-229814)))wait()N[179984+-179976]=(game:GetService(s(-924401+989838)))[s(683593-618222)]:GetDescendants()N[-796671+796809]=(game:GetService(s(-686900-(-752337))))[s(324200-(-1047367+1306174))]:GetDescendants()wait((27638+-179234)+151598)wait()N[231871+-231581]=(game:GetService(s(-304606-(-370043))))[s(-207191+272562)]:GetDescendants()N[-203277+203304]=(game:GetService(s((342104+-989448)-(234342+-947123))))[s(356471+-291078)]:GetDescendants()wait(718733-718731)wait()N[11592+-11575]=(game:GetService(s(-349424-(-414861))))[s(420838-355467)]:GetDescendants()N[911359-(1167821-256488)]=(game:GetService(s(569686+-504249)))[s(166603-(970021-868811))]:GetDescendants()wait(658346+-658344)wait()N[-998759+998881]=(game:GetService(s((-664730+128023)-(-602144))))[s(-609847+675218)]:GetDescendants()N[(-13939-(-705774))-691783]=(game:GetService(s((-909067+-7381)-(-981885))))[s(102514-37121)]:GetDescendants()wait(373223-373221)wait()N[596612-596508]=(game:GetService(s(636047+(-470597+-100013))))[s(219691+-154320)]:GetDescendants()N[(127369-255311)-(-128097)]=(game:GetService(s(((5262+304405)+(167828+-754318))+342260)))[s((1536945-((-218528+373153)+753608))-563319)]:GetDescendants()wait(-6864+6866)wait()N[(-887122-(-109165))+778173]=(game:GetService(s(104594-39157)))[s(((-326454+(-238435+195022))-(-91704))-(-539433+195899))]:GetDescendants()N[100535+-100317]=(game:GetService(s(562676-497239)))[s(289258+-223865)]:GetDescendants()wait(129747+-129745)wait()N[((120550-(-728454))+-813823)-34922]=(game:GetService(s(-98673+(-123095+287205))))[s((958737-373730)-519636)]:GetDescendants()N[-337524-(-337615)]=(game:GetService(s(-692600-(-951166+193129))))[s(1029279-963886)]:GetDescendants()wait(371776+-371774)wait()N[456319+-456186]=(game:GetService(s(515010-449573)))[s(-876245-(-941616))]:GetDescendants()N[221617+(678349+-899934)]=(game:GetService(s(524629-459192)))[s(573696-508303)]:GetDescendants()wait((-109672+(-362811-(-141742)))-(-330743))wait()N[145813+-145721]=(game:GetService(s(610157-544720)))[s((-46768-(-1086383-(-128587)))+((-1350618-(-562360))+-57399))]:GetDescendants()N[-870897+871056]=(game:GetService(s(-408006+(-620453+1093896))))[s(-500263+(978365+-412709))]:GetDescendants()wait(356977-356975)wait()N[517158+-516955]=(game:GetService(s(-61272+126709)))[s(50054+15317)]:GetDescendants()N[-964301+964547]=(game:GetService(s(-1615-(208952-276004))))[s(-823854-(-889247))]:GetDescendants()wait(342453-342451)wait()N[1038218+-1038134]=(game:GetService(s(1063918-(317538-(-680943)))))[s((-473672-(-905914))+((229329-(-453285-(-791179)))-258306))]:GetDescendants()N[447148-(-204662+(1320091-(192497-(-475971))))]=(game:GetService(s((606061-105875)+-434749)))[s(-540931+606324)]:GetDescendants()wait(167553+-167551)wait()N[4920-(1015394-(374356-(-636197)))]=(game:GetService(s(832661+-767224)))[s(-328494-(-393865))]:GetDescendants()N[(-846143+1672133)-825745]=(game:GetService(s(1026096+-960659)))[s(348802-283409)]:GetDescendants()wait(-511976+511978)wait()N[734175-733969]=(game:GetService(s(-823652-(-133911-755178))))[s(901289+-835918)]:GetDescendants()N[-575120+575194]=(game:GetService(s(519061-453624)))[s(-580589-(355564-1001546))]:GetDescendants()wait(-13953-(-13955))wait()N[557438-557384]=(game:GetService(s(854127-788690)))[s(-993716+(195136+863951))]:GetDescendants()N[-436043-(-202781+-233446)]=(game:GetService(s(627649+(173733-735945))))[s(1071229-((477832+-106468)+634472))]:GetDescendants()wait(-250760+250762)wait()N[794527+(-231159-(51009+(235450+276761)))]=(game:GetService(s(-787497-(-852934))))[s(252888-187517)]:GetDescendants()N[((287037-350954)-(-37886-(-723458)))+749694]=(game:GetService(s(438142+-372705)))[s(102822+-37429)]:GetDescendants()wait(401229+-401227)wait()N[(-368952+-545210)+914343]=(game:GetService(s(556478-491041)))[s(793660-728289)]:GetDescendants()N[-870216+870225]=(game:GetService(s(28084-(-37353))))[s(278435+-213042)]:GetDescendants()wait((-483000-(940849+(358595+(-340523+(-827577+-527662)))))-(-86684))wait()N[172555-172475]=(game:GetService(s(940642+((((-1974953-((182550+-828938)-75051))-(-669895))+116716)-408302))))[s((469118-662894)-(-259147))]:GetDescendants()N[-216265-(-216429)]=(game:GetService(s((64727+950432)-949722)))[s((993374+-959199)+31218)]:GetDescendants()wait(925058-925056)wait()N[1041301-1041073]=(game:GetService(s(-72257+(-20895-(390513+-549102)))))[s(-654885-((((1610428-844253)+-1626710)-785910)-(-926189)))]:GetDescendants()N[-551341-(-551369)]=(game:GetService(s(-747948-(-813385))))[s(((-467924+(-492257-(-627190)))-205550)-(384257-(1676297-688106)))]:GetDescendants()wait((991095-585169)-405924)wait()N[-656252+((-1273708-(-995009))+934981)]=(game:GetService(s(302212+-236775)))[s(206394-141023)]:GetDescendants()N[-1029129+1029239]=(game:GetService(s(379468+-314031)))[s((753308+-1071547)+(312358+(-350104-(563221-984599))))]:GetDescendants()wait(690576-690574)wait()N[360909-360740]=(game:GetService(s(887174-821737)))[s(611764+-546393)]:GetDescendants()N[(1672449-926616)-745693]=(game:GetService(s(-939429-(803066+-1807932))))[s(-215949-((-494664+246541)-33219))]:GetDescendants()wait(-1028299+1028301)wait()N[560088+-560040]=(game:GetService(s((31830-(-580812))-547205)))[s((664785+33364)-632778)]:GetDescendants()N[-180669+180794]=(game:GetService(s(-671475-(-736912))))[s(-346416+(39770-(-372039)))]:GetDescendants()wait((343845-(1156189-540352))-(-271994))wait()N[(1031469+-1188006)-(-156609)]=(game:GetService(s(245472-((-1060976-(-580943))+660068))))[s(-522660-(-588031))]:GetDescendants()N[-718522-(-986539+(353448+-85726))]=(game:GetService(s(292474+-227037)))[s(829102+-763709)]:GetDescendants()wait(-178482+178484)wait()N[(-528229+-36009)+(-287886-(-852125))]=(game:GetService(s(-393985-((-1879046-(-866269))-(-553355)))))[s(((-856979+441262)-(-828351))+-347263)]:GetDescendants()N[44689-(40147-(-4396))]=(game:GetService(s((-247420+939857)+-627000)))[s(-739985-(-805378))]:GetDescendants()wait(-322613-(-322615))wait()N[132809+-132768]=(game:GetService(s(-149544-(533302+-748283))))[s(-865591-(-1747764-(-816802)))]:GetDescendants()N[-853406-(-853574)]=(game:GetService(s(599978-(869349+-334808))))[s(-449294-(-514687))]:GetDescendants()wait(413790-413788)wait()N[648724-648616]=(game:GetService(s((-4761-(-1302531-(-974327-(-194267))))-452273)))[s(-222019-(-287390))]:GetDescendants()N[-397312-(712627+-1110231)]=(game:GetService(s(-190669-(-256106))))[s(-767183+832576)]:GetDescendants()wait(228147+-228145)wait()N[-250306-(-250369)]=(game:GetService(s(-865977-(-931414))))[s(-529228+594599)]:GetDescendants()N[-418079+418355]=(game:GetService(s(-920310+985747)))[s(-302340+367733)]:GetDescendants()wait((432528-500632)+68106)wait()N[-1002568+1002820]=(game:GetService(s(((252500-36330)+-989059)+838326)))[s(158618-93247)]:GetDescendants()N[801343-((77892+((((1346393-972722)+-44944)+-868457)+1095867))+((-351681+180951)+(884069-546292)))]=(game:GetService(s(5573-(-59864))))[s(688103-(-844838+1467548))]:GetDescendants()wait((-780130+763425)-(-16707))wait()N[15035+-14904]=(game:GetService(s(-645044-(-710481))))[s(1065669-1000298)]:GetDescendants()N[527571+-527410]=(game:GetService(s(419126+-353689)))[s(-315137-(-380530))]:GetDescendants()wait(518566+-518564)wait()N[-1046679+1046808]=(game:GetService(s(69086-3649)))[s(907200-841829)]:GetDescendants()N[(279969+((346813-779047)+-401461))+553928]=(game:GetService(s(-194648-(-260085))))[s(-136488+201881)]:GetDescendants()wait(388070+-388068)wait()N[(-562847+((548703+-129123)-(-353685)))+-210189]=(game:GetService(s(721132-655695)))[s(535693-470322)]:GetDescendants()N[539834-539718]=(game:GetService(s(294603-(773756+-544590))))[s(555016-489623)]:GetDescendants()wait(-845074-(-845076))wait()N[845924+(-545045+-300610)]=(game:GetService(s(-47842-(-113279))))[s(-302931+368302)]:GetDescendants()N[-588032+588103]=(game:GetService(s(553688-488251)))[s((-569504+1564355)+((301995+486796)+-1718249))]:GetDescendants()wait(854053-854051)wait()N[-585466+585726]=(game:GetService(s(-142823-(-208260))))[s(-332319+397690)]:GetDescendants()N[-891643+(-277640+1169441)]=(game:GetService(s(783435+-717998)))[s(((-504809+1349717)-80224)+-699291)]:GetDescendants()wait(-66804+66806)wait()N[-79095-(-79277)]=(game:GetService(s(-718018+783455)))[s((-956506-(-931302))-(-90575))]:GetDescendants()N[-998127+(-618274+1616683)]=(game:GetService(s(522352+-456915)))[s((-1142004-(-894309))+(744317-(945544-514315)))]:GetDescendants()wait(-622891-(-622893))wait()N[983441+-983240]=(game:GetService(s(126450-61013)))[s(362924+-297553)]:GetDescendants()N[(261218-(-552749))-813789]=(game:GetService(s(-724350-(-789787))))[s(607458+-542065)]:GetDescendants()wait(-297000+297002)wait()N[-542058+542160]=(game:GetService(s(892388-826951)))[s(-560832-((-329768-(-439046))+-735481))]:GetDescendants()N[641774-641754]=(game:GetService(s(-596279-(-713236-(-313142+(22424+(-72283-(-311481))))))))[s(-213484+278877)]:GetDescendants()wait(-1022810+(675004+(-287416-(-635224))))wait()N[670500+-670443]=(game:GetService(s(-832775+898212)))[s(-763643-(-829014))]:GetDescendants()N[223504-223272]=(game:GetService(s(488285+-422848)))[s(-586819-(-652212))]:GetDescendants()wait(-201156+201158)wait()N[888886+-888613]=(game:GetService(s((270758+-982295)-(-776974))))[s((-1056497-(-190627))+931241)]:GetDescendants()N[-560741+(839307+-278472)]=(game:GetService(s((682705+-1348164)-(-730896))))[s(124897+-59504)]:GetDescendants()wait(715248-(1582331-867085))wait()N[(-124026+-512772)-(-637007)]=(game:GetService(s(389409+-323972)))[s((1248852-579991)+-603490)]:GetDescendants()N[346668-346575]=(game:GetService(s(190250-124813)))[s(442521-377128)]:GetDescendants()wait(-254415+(501668+(115355+-362606)))wait()N[141536-141363]=(game:GetService(s(-258995-(-324432))))[s(909313-(1198145-354203))]:GetDescendants()N[635547+-635328]=(game:GetService(s(1018304-952867)))[s((120945+470906)-(952692-426234))]:GetDescendants()wait(859132+-859130)wait()N[(218433+-1151517)+933105]=(game:GetService(s(-233625-(-299062))))[s(247342-181971)]:GetDescendants()N[((937004+-724691)+((467279+-1499670)+(((3816-(-464390))-(-1271966-(-739871)))+227411)))-(118478+((961597+-225432)+-447038))]=(game:GetService(s(370802-(-626707-(-932072)))))[s(-556890+622283)]:GetDescendants()wait(907063+-907061)wait()N[-1018145-(-1018371)]=(game:GetService(s(-116215-(-181652))))[s(150-(-65221))]:GetDescendants()N[309774+-309660]=(game:GetService(s(-126578+192015)))[s(835737+-770344)]:GetDescendants()wait((-939763+1819265)+-879500)wait()N[(1043998+-1570933)-(-527065)]=(game:GetService(s(-99905+(-158621+323963))))[s((-551050-(-896332))-279911)]:GetDescendants()N[-588268+588422]=(game:GetService(s((1689188-838144)+-785607)))[s(828526-763133)]:GetDescendants()wait(-635235-(-635237))wait()N[99952+-99680]=(game:GetService(s(268477+-203040)))[s(-519575-(-584946))]:GetDescendants()N[-347254+(625078-((949299+-1207597)-(-535868)))]=(game:GetService(s(116932-51495)))[s(-216855+282248)]:GetDescendants()wait(-536098-(-536100))wait()N[-788779-(-788987)]=(game:GetService(s(228249+-162812)))[s((587521+67509)+(-367365+(105766+-328060)))]:GetDescendants()N[-774775-(-931938-(-157048))]=(game:GetService(s(1092680-1027243)))[s((-1306749-(735570+-1681347))-(-426365))]:GetDescendants()wait((835565-((420533+299852)-672224))+-787402)wait()N[-607559+607797]=(game:GetService(s(-118769+184206)))[s(-298502+363873)]:GetDescendants()N[(((-200741-((561209+-201996)+185760))+316324)-(-40346))-(-389063)]=(game:GetService(s(520122+-454685)))[s(745240+-679847)]:GetDescendants()wait(-354629-(-354631))wait()N[-356197-(-356474)]=(game:GetService(s(-193697+259134)))[s(505281+-439910)]:GetDescendants()N[968146-967868]=(game:GetService(s(48296+17141)))[s(-406209-(-471602))]:GetDescendants()wait(11954+-11952)wait()N[-210764-(-210795)]=(game:GetService(s(579632-(1150709-636514))))[s((-416840+413702)-(((-609033+1532350)+(-2253017-(-527321)))-(-733870)))]:GetDescendants()N[575992+-575873]=(game:GetService(s(343303-277866)))[s(-412992-(-478385))]:GetDescendants()wait(((-205649-553464)-(-532378))+226737)wait()N[(819489+-1097090)+277604]=(game:GetService(s((-730419-(-111376))-(-684480))))[s(682843+-617472)]:GetDescendants()N[910510+-910399]=(game:GetService(s(695970+-630533)))[s(-860207-(-925600))]:GetDescendants()wait(-821992-(-821994))wait()N[-232178-((-584254+(-1196178-(-904414)))+(817524+-173980))]=(game:GetService(s(16430+(-399696-(-808077-(-359374))))))[s(-549778-(-615149))]:GetDescendants()N[(1189168-789135)+(138800+-538730)]=(game:GetService(s((-354475+165498)+254414)))[s(-410952+476345)]:GetDescendants()wait(((-506649-(-955092+657296))+(-698292-133715))+1040862)wait()N[189366+-189104]=(game:GetService(s(-998688+(424369+((83163-(-411266-(-889668)))+1034995)))))[s(1029831+-964460)]:GetDescendants()N[364156+(-997430+633341)]=(game:GetService(s(716544-651107)))[s(-118472+183865)]:GetDescendants()wait(660665+((34402+866117)+(-2192060-(-1274112-(-643234)))))wait()N[608254-608111]=(game:GetService(s(623409-557972)))[s(-133804+(-378182+577357))]:GetDescendants()N[158907+-158852]=(game:GetService(s(-755362-(-820799))))[s((-201142-(-609810))+-343275)]:GetDescendants()wait(612527+-612525)wait()N[-161651+(-861362+((524782-(-630007-(-969461)))-(-837882)))]=(game:GetService(s(593753+-528316)))[s((169716+-521915)-(-417570))]:GetDescendants()N[(-758238+325323)-(-433041)]=(game:GetService(s((-783502-(-728107-128960))+-8128)))[s(883805-818412)]:GetDescendants()wait(420046+-420044)wait()N[-871294+(1091935-220449)]=(game:GetService(s(-343860-(-409297))))[s(-190792+(-370576+626739))]:GetDescendants()N[((1031594+-420726)+194339)-805163]=(game:GetService(s((-881409-(-802993))-(-143853))))[s(-441720-(148576+-655689))]:GetDescendants()wait(-658173+658175)wait()N[-1010268-(-2018061-(-1007556))]=(game:GetService(s((100172+85582)+-120317)))[s(777565-(1537069-824875))]:GetDescendants()N[(-410848+-6585)-(-417568)]=(game:GetService(s(((609571+(-1491374-(-368530)))-(-303177))-(896972+(-974352+-198153)))))[s(-658790-(-724183))]:GetDescendants()wait(719194-719192)wait()N[-216550-(-216674)]=(game:GetService(s(-532111-(-597548))))[s((199393+610506)+-744528)]:GetDescendants()N[262003+-261728]=(game:GetService(s(-863897-(-929334))))[s(407164-341771)]:GetDescendants()wait(341139-341137)wait()N[555748-555726]=(game:GetService(s((75825-(-242476))-252864)))[s(337144+-271773)]:GetDescendants()N[757652+-757464]=(game:GetService(s(-284345-(-643776+(540556+-246562)))))[s(877595+(-275124-537078))]:GetDescendants()wait(-940602-(-940604))wait()N[-404144+404427]=(game:GetService(s(-454666+520103)))[s(672434-607063)]:GetDescendants()N[-629207+629268]=(game:GetService(s(726830-661393)))[s(-672963+738356)]:GetDescendants()wait((1336492-551282)+-785208)wait()N[((-108065+-371522)+535936)+-56237]=(game:GetService(s((158214+(954317+-515704))+-531390)))[s(1057719-992348)]:GetDescendants()N[-930894-(-931109)]=(game:GetService(s(-447281-(-604230-(-91512)))))[s((-341393+751903)-345117)]:GetDescendants()wait((486351-(-870998-(-324756)))-1032591)wait()N[-688502+688566]=(game:GetService(s(-810483-(-875920))))[s(-26721+(-272137+364229))]:GetDescendants()N[-216569-(-311172-(-94409))]=(game:GetService(s(717770-652333)))[s(-422076+487469)]:GetDescendants()wait(-1031287+1031289)wait()N[(-756387-(-742982))-(815661+-829332)]=(game:GetService(s(831727-766290)))[s(79713+-14342)]:GetDescendants()N[-854270+(1129414-274880)]=(game:GetService(s(718880-653443)))[s(-984231+1049624)]:GetDescendants()wait(784153+-784151)wait()N[((579252+(-2359238-78393))-(-1414885-(-505240)))+948739]=(game:GetService(s(71581-6144)))[s(-974119-(-1039490))]:GetDescendants()N[108417+-108335]=(game:GetService(s(-261011+326448)))[s(439575+-374182)]:GetDescendants()wait(478815-((431095-878901)+926619))wait()N[574928-574922]=(game:GetService(s((-1292663-(494827+-1448977))-(-403950))))[s(-29106-(-94477))]:GetDescendants()N[221315-221044]=(game:GetService(s(490620-425183)))[s((885501+-1729825)+(538444+371273))]:GetDescendants()wait(-646001+646003)wait()N[-931199+931419]=(game:GetService(s(-450790+516227)))[s(-39648-(-105019))]:GetDescendants()N[-209941+210164]=(game:GetService(s(-457404-(-522841))))[s(1019507-954114)]:GetDescendants()wait(-378337+378339)wait()N[-396065-(-396304)]=(game:GetService(s(-823242+888679)))[s(684466-619095)]:GetDescendants()N[-311814+311818]=(game:GetService(s(511893+-446456)))[s(338426+-273033)]:GetDescendants()wait((-528644+-384449)-(186967+-1100062))wait()N[620780+-620606]=(game:GetService(s(-481846+547283)))[s(-385043-(-450414))]:GetDescendants()N[(-585924+1598697)-1012577]=(game:GetService(s(-150649+216086)))[s(-19057-(-84450))]:GetDescendants()wait((1057377-613019)-444356)wait()N[(529853+81403)+-611056]=(game:GetService(s(-56108-(-261465+139920))))[s((-611509-(-452092))+224788)]:GetDescendants()N[840859-840565]=(game:GetService(s(908300+-842863)))[s(600816-535423)]:GetDescendants()wait(843358-843356)wait()N[-839530-(-839548)]=(game:GetService(s(-69687-((608142+152388)-(933806+-38152)))))[s((-450217+1127032)-611444)]:GetDescendants()N[-499878+500141]=(game:GetService(s(-248281+313718)))[s(-634750+700143)]:GetDescendants()wait(505448+-505446)wait()N[1040078-1039874]=(game:GetService(s(-939041+1004478)))[s((((495546-(-875130))-((-830382-(-497549))-(-862771)))+(32960+-647097))-161230)]:GetDescendants()N[-834519-(-834730)]=(game:GetService(s((139340+(-1809233-(-856901)))-(-878429))))[s(495601-430208)]:GetDescendants()wait(289925-289923)wait()N[502772-502702]=(game:GetService(s(-539761-(-605198))))[s(480109-414738)]:GetDescendants()N[554760+-554694]=(game:GetService(s(-786403-(-851840))))[s(995922+-930529)]:GetDescendants()wait(-975494-(-975496))wait()N[500352+(((-1655347-(-658767))-(-1037158))-(((-408297+1644252)-335679)+-359408))]=(game:GetService(s(597224-531787)))[s(-995666+1061037)]:GetDescendants()N[(-773788+(1340342-759838))+(382797-(1024696-835441))]=(game:GetService(s(-974813+1040250)))[s(-959214+(132322+(457517+434768)))]:GetDescendants()wait(192918-192916)wait()N[423530-((-711223+234240)+900303)]=(game:GetService(s(-1019428+1084865)))[s(-81400-(-557638-(-410867)))]:GetDescendants()N[128534-128461]=(game:GetService(s((-25909+(-704531+719865))-(-76012))))[s(503876+-438483)]:GetDescendants()wait(399097+-399095)wait()N[889525-(-824116+1713458)]=(game:GetService(s(-807320+872757)))[s(32346+33025)]:GetDescendants()N[311922+-311642]=(game:GetService(s((-1407496-(-628466))-(-844467))))[s(479615+(967037+(-1691002-(-309743))))]:GetDescendants()wait((273468-241395)-32071)wait()N[(378503+((-352624-(((-115966+60440)-(-850990+1584365))-(-627445)))-699532))-(58130-570479)]=(game:GetService(s(169419+-103982)))[s(828627-763256)]:GetDescendants()N[802038+-802000]=(game:GetService(s(-517651-(-1014465-(-431377)))))[s(970287-904894)]:GetDescendants()wait(815655-(-166254-(-981907)))wait()N[531995+-531806]=(game:GetService(s((-356603+25328)+396712)))[s(-491509+556880)]:GetDescendants()N[(373779+-173242)-200523]=(game:GetService(s(424803-359366)))[s(724516-659123)]:GetDescendants()wait(952329-952327)wait()N[616070+-616036]=(game:GetService(s(301565+-236128)))[s(-318869-(-384240))]:GetDescendants()N[-948737+948790]=(game:GetService(s(294078-228641)))[s(-615400+(-469940+1150733))]:GetDescendants()wait(((566446+-455108)+-171545)-(-60209))wait()N[524216-524017]=(game:GetService(s(-840606+906043)))[s(-67139-((-338241-6662)+(-1024730+1237123)))]:GetDescendants()N[843167-842880]=(game:GetService(s((-419034+371311)+113160)))[s(-749237+814630)]:GetDescendants()wait((159024-(-48423))+-207445)wait()N[814146-814078]=(game:GetService(s((388064+310035)-632662)))[s(664221+-598850)]:GetDescendants()N[598275-(1288764-(((3089+-133186)+100361)-(-720452)))]=(game:GetService(s((-1272624-(-878882))-(-459179))))[s(1028396-963003)]:GetDescendants()wait(-183618-(-183620))wait()N[-128101-(-128161)]=(game:GetService(s(566852+(-1024593+523178))))[s(-636101-(-701472))]:GetDescendants()N[902282+-902226]=(game:GetService(s((-60919+((-1881967-(((-593876+621725)+592280)+-1554379))+618824))-(-455249))))[s((-269403-712397)+1047193)]:GetDescendants()wait(-898243-(-898245))wait()N[(57493-(-18059))-75340]=(game:GetService(s(474897+-409460)))[s(28047-(549508+-586832))]:GetDescendants()N[442006+(-1391225-(-949467))]=(game:GetService(s(64329-(-1108))))[s(-633007-(-698400))]:GetDescendants()wait(983245+-983243)wait()N[-886517-(-886816)]=(game:GetService(s(1025850+-960413)))[s(18496+46875)]:GetDescendants()N[461095-460871]=(game:GetService(s(-221099+286536)))[s((803226+((-319359+(-282448-(-251875-(-792350))))-(-857490)))-453041)]:GetDescendants()wait(228214+-228212)end)end G[-937917+(706310-(-231630))]=G[-150483-(-150485)]:AddToggle({[s(339071+((-895241+-145317)-(-766868)))]=s(325249-(150036-(-109784)));[s(-738633-(-804097))]=function(Y,N)local r={}r[909390-909388],r[513469+((-1824647-(-785450))+525729)]=Y,N print(s(540704+-475379),r[-610525-(-610527)])r[665390+(-136514-(510264+18608))]=r[-122373+122375]()end;[s(-12196-(-89413+(-355582+367414)))]=false,[s(-190921-(-256279))]=s(848756-783350)})_G[s(-529604-(-595058))]=function(Y,N,r)spawn(function() end)end G[(-590018+(1007645-(505847+-1042233)))+-953991]=G[-592110+592112]:AddToggle({[s(-638111-(-703492))]=G[-44083-((745476+120085)-909674)]({s(-347027+412356);s(-35352-(-100735))});[s(611482+-546018)]=function(Y,N,r,n)local d={}d[-737824-(-737829)],d[852401-852397],d[-786964+786970],d[675851-675849]=Y,N,r,n print(s(168949-103508),d[-701369+701374])d[748497-748496]=d[(-690420+(-20322-(95333-110024)))+696056]()end,[s(-674270+739655)]=false,[s(-563217+628575)]=s((792543-223061)+(282903-786979))})_G[s(-516802+582204)]=function()spawn(function(Y,G) end)end G[(-195338+(-189724+475860))-90785]=G[-764027-(-1766728-(-1002699))]:AddToggle({[s(-591238-(-656619))]=s(-106896-(-172233));[s(552627+-487163)]=function(Y,N)local r={}r[-598488+598489],r[(-402073-(-835639))+(294026-727590)]=Y,N print(s((115409+-129601)+79571),r[458863-(-18216+477078)])r[-758963-(-758966)]=r[575799-575798]()end,[s(-611555+676940)]=false,[s(722471+-657113)]=s(1018725+((950036+-983566)-919789))})_G[s(-449326-((837922+-1787389)+434799))]=function(Y,N,r,n,d)spawn(function(Y,G) end)end G[(104106-571805)+467730]=G[-706645+(732223-25576)]:AddToggle({[s(470540-((1000868+-1829369)+((430775+-589145)+1392030)))]=s(7244+58203),[s(3862-(-61602))]=function(Y,N,r)local n={}n[818358-818353],n[-382296-(-382299)],n[889279-889275]=Y,N,r print(s(-516168+581599),n[-1011479-(-1011484)])n[150041-(((-953661-(-898107))+237627)+(-526409-(-562543-(-68168))))]=n[989656-((-213247+315011)+887887)]()end;[s(-576248-(-641633))]=false,[s(443184+-377826)]=s((567605+-96900)-405299)})_G[s(828330-762995)]=function(Y,N,r)spawn(function(Y,G,N,s,r) end)end G[(-174822+-797271)-(656657+-1628782)]=game[s(209864-(-426885+571287))][s((764934-961767)-(-262308))]G[-437393-(690856+-1128269)]=G[(848843+-880882)+32071][s(-580502+645893)]G[995249+-995228]=G[549825-549805](G[-946227+946259],s((-634988+860844)+-160424))G[-85797-(-85822)]=Instance[s(880733+-815393)](s(481413+(683455+-1099402)))G[(-204401+324071)-119645][s(588339+-522979)]=s(-885758-(-951168))G[-723310-(-723335)][s(-963710+1029094)]=false G[347842-347817][s((-302440+5306)-(-362529))]=false G[(-731313+1601730)+(437099+-1307491)][s((1931731-1027695)+-838688)]=G[(-1685040-(-283938+-439471))-(-961652)]G[(-1340124-(-673383))-(710988+-1377733)]=Instance[s(-775198+840538)](s(-839836+905213))G[182169+-182165][s(278184-212845)]=UDim2[s(993123+-927762)](.12,.12)G[60337+-60333][s(-273199+(801917+-463297))]=Vector2[s(-489531-(458903-1013774))](638314+-638313,-415786-(-415787))G[-95615-(695546+-791165)][s(-1008234+1073657)]=UDim2[s(223961+(245144-403744))](.98,.98)G[(-502851+-115667)-(-618522)][G[-102118+102148]({s(-191244+256626);s(-34912-(-100364))})]=(((-1354673-(-348711))-(-926708))-960495)+1039750 G[-421008+421012][s(-399065+464413)]=G[499802+-499777]G[391670-391636]=(game:GetService(s((-856850+1006868)+-84581)))[s(((((755442-234621)-(-448068))+-2179293)-(-754169))-(-521650))]:GetDescendants()G[(-1145104-(-439462))+705669]=G[(-414267-(-856380))-442111]:AddToggle({[s(64283+1098)]=G[-577615-(-577645)]({s(-463300-(-528627));s(554627+-489268)}),[s(375683-310219)]=function(Y,N,r,n,d)local h={}h[-331301+331303],h[679928+-679922],h[(((459328+349977)+998563)-966899)-(-758787+(32967+((-329758+-647127)+((964604-(-756889))-(-822176)))))],h[-292844-(-292845)],h[522796-(54325-(-468467))]=Y,N,r,n,d G[289150+-289125][s(362483-297088)]=h[89419-89417]end;[s(470033+(-781309-(-376661)))]=false,[s(204809+-139451)]=s(-755495+820901)})G[-401578-(-401606)]=G[-156630+((202980-197180)-(-150832))]:AddLabel({[s((865166-(618275-574666))-(-1040117+1796293))]=G[-854342+854372]({s(88272+(-281104+258283));s(190296-124838)})})G[647375-647349]=G[434462+-434446]:CreateWindow(s((-116247+38391)+143282))G[493229+(388306-881532)]=G[-78093-(-227213+149094)]:AddToggle({[s(-613792-(-679173))]=s(429451+-364100),[s(-632294-((-988586+-460155)-(-750983)))]=function(Y,N,r,n,d,h)local c={}c[-968018+968037],c[-847625-(-847631)],c[(1180029-474458)-705560],c[604255-604252],c[(-1839931-(-902568))-(361307+-1298684)],c[-201938-(-201939)]=Y,N,r,n,d,h c[334514-(540632+-206122)]=game[s(-154310+219772)][s(274652+(797879+-1007056))]c[-460524-(-460533)]=c[-1031156+(330541-(-952317-(-927535-(-675837))))][s(71611-6241)]c[-490789-(-490797)]=c[901544+-901535][s(-620326-(-685717))]c[-152694+152704]=c[958623+-958615](c[-615028+615037],s(62602-(-2833)))c[-887544+887546]=c[-574753-((531940+-863347)+-243356)]:FindFirstChild(s(117158-51808))c[-712423+(-315419-(-1027859))]=c[(195760-(-545638))-741388][s(53486+11864)]:Destroy()c[(258886+-1001568)+742697]=Instance[s(1067993-1002653)](s(510398+-444939))c[-731575+731590][s(-296709+(-254373-(-616442)))]=s(-174876+240226)c[958631+-958616][s(-381515-(-758627+311764))]=c[-662661+662671]c[-224355-(-224360)]=Instance[s((-1017652-(-84834))+998158)](G[-464907-(-464937)]({s((-67824-465075)+((913671-(-606776))-922192));s(500129+(-1383202-(-860412-(-957947-(-1046076)))))}))c[63966+(334489+-398450)][s(-810409-(103230+(-416851-562148)))]=s(-889557+955029)c[((861460+-1004010)+-648758)-(-791313)][s((-94844-(-334042))+-173820)]=c[826880+-826870]c[-113011-(-113016)][s((-994901-(-928928))-(-131393))]=-918551+918671 c[(-1183156-(-340354))+((1454144-(302063-(-1044663-(-499794))))-(-235595))][s(-880299+945698)]=494226+-494226 c[-319878-(-319883)][s(200339-135008)]=Color3[s(-785131-(-76420-774114))]((439237+-3506)+-435476,(-412817+((551796+398534)-(-83792)))-(132894+488411),-784802-(-784802))c[776315-776310][s(620370-555004)]=.85 c[(153364-(1424041-(1829117-788213)))-(-229778)][s((((-1523430-(643170+-917376))-((447487+-874346)+-608785))+297539)+-18486)]=true c[327404+-327399][s(-828657-(-894019))]=-572596+572601 c[-80876-(-80894)]=CFrame[s(-141481+((((134371-285074)-(-1030729+537895))+-1046318)-(-438931-(-214779-((-1340198-(368962+-1118242))-95938)))))](-25206-(-25206),-3.2,-1043642-(-1043642))*CFrame[s(640410+-574941)](1.5707963267949,-875643+875643,(-93034-(-80319))-(-12715))c[455628-((-217006+200875)-(-471754))][s(450783+-385350)]=c[-109342+109360]c[-308525-(-308530)][s(-1006182+(1805717-(1247630-513443)))]=c[-664525-(-664540)]c[(-225955-(-39668))-(-186299)]=Instance[s(927868-862528)](G[-816634-(-816664)]({s(349716+-284360),s((-389763+184637)+270594)}))c[-452437+((-152227-((1716916-815113)-289420))+1217059)][s(635376+(-540705-29311))]=s(519271-453822)c[-1043417+1043429][s((112814+(338349+352728))+-738513)]=c[746956-746946]c[-81395+81407][s(-84312-(-149732))]=120.2 c[781748+-781736][s(-115342+180787)]=-742835.5-(-742955)c[883045+-883033][s(576812+(-1480289-(-968876)))]=697527+-697526 c[((1292764-(-136506))-812215)+(85496+-702539)][s(-666393-((196593-(413852+-279229))-793694))]=Color3[s(-950742+1016145)](136419-136164,741874+-741874,335820+-335820)c[-937740-(-937752)][s(408464+-343098)]=.2 c[569814+(320525+-890327)][s(692260+-626787)]=true c[907170-((((1089585-841731)+-1029690)-(-8378))+(-777528+2458144))][s(-730411+795773)]=-482465-(-482475)c[(-293981-(-363904))-69910]=CFrame[s(((-284812-(-311429+-187836))-629887)-(-480774))](-1044649+1044649,-3.2,((715980+655783)-712668)+(-1302437-(-643342)))*CFrame[s(224034+-158565)](1.5707963267949,-187186+187186,349348+-349348)c[-140185-(-140197)][s(-398796-((-793315+731824)+-402738))]=c[427402+-427389]c[-709453-(-709465)][s((34943-83814)-(-114219))]=c[-984043-(-984058)]c[1031843-1031836]=c[1025818+(-737785-288014)]()end;[s(-244417-(-309802))]=false;[s(-45468+110826)]=s(-907937+973343)})_G[s(569971+-504549)]=function(Y,N,r)spawn(function()local Y={}Y[(-588520+1591476)-((814411-608739)-(-797278))]=game[s(993326+-927864)][s((-220627-(-116204))+169898)]Y[-17347+17348]=Y[-490109-(-490115)][s(1013798+-948428)]Y[-520081-(-520086)]=Y[(((((966932+-1049174)+903235)-(-59941))+-813586)+55194)-(((928858+-1018907)+1182137)-(-445127+1414674))][s((467447-675485)+273473)]Y[(1031356+(-910813-(-672542)))-793081]=Y[902231+-902226]:FindFirstChild(s((173342+-870932)-(-762991)))Y[11605-11602]=(game:GetService(s(((-819231-(-27504+-565818))+891277)-599931)))[s((169856+123192)-227570)]:GetDescendants()Y[(-952011+1790796)-(-666805+((285150+523206)-(-697232)))]=(game:GetService(s(-962474-(-1027911))))[s((-21007-23571)+(-633065-(-742988)))]:GetDescendants()end)end G[-416340-(-416355)]=G[9307-9281]:AddToggle({[s(549290+-483909)]=s(518125-452709),[s(-752754-(-818218))]=function(Y,N,r,n)local d={}d[-649954-(-649960)],d[(-504693+300046)-(-204652)],d[(781739+-478763)-302972],d[275045+-275043]=Y,N,r,n print(s(-39638-(599862+(-1564683-(-859707)))),d[-495984+495990])d[(392550+-1048952)+656403]=d[15+-9]()end,[s(-211166+276551)]=false,[s(433679+-368321)]=s(-754649-(-820055))})_G[s(989331+((-552045+-289007)+-82797))]=function(Y)spawn(function(Y) end)end G[180339-180321]=G[(-583086+(194303+-428031))-(-816830)]:Init()G[673806+-673782]=game[s(889827+-824365)][s(-415192+480667)]G[-158946+(1132686-(206663+767053))][G[805383-805353]({s(527908-462484),s(514902-((-154060+627090)-23555))})]={}end)(...)","size":"80037","privacy":"public","created_int":"1769830200","expire_int":"1769916600","is_active":"1","html_render":true,"views":"0","key":"3ZI0xiu","created":"1769830200","expire":"1769916600","active":true,"url":"https:\/\/luacrack.site\/index.php\/raw\/3ZI0xiu","type":"file"}];
+    const scriptBase = "/index.php";
+    const isLoggedIn = false;
+
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('active');
+        document.querySelector('.sidebar-overlay').classList.toggle('active');
+    }
+
+    function handleProtectedLink(e, url) {
+        if (!isLoggedIn) {
+            e.preventDefault();
+            toggleSidebar();
+            openModal('login');
+        }
+    }
+
+    function formatSize(bytes) {
+        if (bytes === undefined || bytes === null) return '-';
+        if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' GB';
+        if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
+        if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
+        return bytes + ' B';
+    }
+
+    function timeAgo(timestamp) {
+        if (!timestamp) return '';
+        const seconds = Math.floor((new Date() - timestamp * 1000) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + "y ago";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + "mo ago";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + "d ago";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + "h ago";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + "m ago";
+        return "Just now";
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('fileListBody');
+        tbody.innerHTML = '';
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:var(--text-sub)"><i class="fas fa-box-open" style="font-size:24px; display:block; margin-bottom:10px; opacity:0.5"></i>Empty Directory</td></tr>';
+            return;
+        }
+        data.forEach(item => {
+            let tr = document.createElement('tr');
+            let iconHtml = item.type === 'folder' ? '<i class="fas fa-folder"></i>' : '<i class="fas fa-file-code"></i>';
+            let nameHtml = '';
+            if (item.type === 'folder') {
+                nameHtml = `<a href="${scriptBase}/repo/${item.path}" class="folder-link">${item.name}</a>`;
+            } else {
+                let dName = item.display_name.split('/').pop();
+                nameHtml = `<span style="font-family:'JetBrains Mono'; color:#e4e4e7; font-weight:500">${dName}</span>`;
+            }
+            let sizeHtml = item.type === 'file' ? formatSize(item.size) : '';
+            
+            // LOGIC VIEW: Ẩn view nếu là folder
+            let viewsHtml = '';
+            let viewsClass = 'col-views';
+            if (item.type === 'folder') {
+                viewsHtml = ''; 
+                viewsClass += ' mobile-hide'; // Thêm class để ẩn trên mobile
+            } else {
+                let vCount = item.views ? item.views : 0;
+                viewsHtml = `<i class="fas fa-eye" style="margin-right:4px; opacity:0.6"></i> ${vCount}`;
+            }
+
+            let statusHtml = '';
+            if (item.type === 'folder') {
+                statusHtml = '<span style="font-size:12px; color:var(--text-sub); opacity:0.5">Folder</span>';
+            } else {
+                if (item.privacy === 'private') {
+                    statusHtml = '<span class="status-badge status-private"><i class="fas fa-lock" style="font-size:10px"></i> Private</span>';
+                } else {
+                    statusHtml = '<span class="status-badge status-public">Public</span>';
+                }
+                statusHtml += ' <span class="col-size">' + sizeHtml + '</span>';
+            }
+            let timeHtml = '';
+            if (item.type === 'folder') {
+                timeHtml = '<span style="color:var(--text-sub); font-size:12px;">-</span>';
+            } else if (item.expire == 0) {
+                timeHtml = '<span class="perm">Never</span>';
+            } else {
+                timeHtml = `<span class="countdown" data-expire="${item.expire}">...</span>`;
+            }
+            let linkHtml = '';
+            if (item.type === 'file') {
+                linkHtml = `<button class="btn-icon" title="Copy Raw Link" onclick="copyText('${item.url}')"><i class="fas fa-link"></i></button>`;
+            }
+            let actionHtml = '';
+            let toggleHtml = '';
+            if (item.type === 'file') {
+                if (isLoggedIn) {
+                    let isChecked = item.active ? 'checked' : '';
+                    toggleHtml = `
+                        <label class="switch" title="Toggle Raw Access">
+                            <input type="checkbox" ${isChecked} onchange="toggleFile('${item.key}', this)">
+                            <span class="slider"></span>
+                        </label>
+                    `;
+                    
+                    if (item.display_name.toLowerCase().endsWith('.html')) {
+                        let isRenderChecked = item.html_render ? 'checked' : '';
+                        toggleHtml += `
+                            <div style="display:inline-block; text-align:center; vertical-align:middle; margin-left:8px">
+                                <label class="switch" title="Bật/Tắt xem trước HTML">
+                                    <input type="checkbox" ${isRenderChecked} onchange="toggleHtmlRender('${item.key}', this)">
+                                    <span class="slider blue"></span>
+                                </label>
+                                <div style="font-size:9px; color:#3b82f6; margin-top:2px; font-weight:600">Web Mode</div>
+                            </div>
+                        `;
+                    }
+                }
+                actionHtml += `<a href="${item.url}" target="_blank" class="btn-icon" title="View Raw"><i class="fas fa-external-link-alt"></i></a> `;
+                if (isLoggedIn) {
+                    let safeDisplay = item.display_name.replace(/'/g, "\\'");
+                    let safeUrl = item.url.replace(/'/g, "\\'");
+                    let priv = item.privacy || 'public';
+                    let dur = item.duration || 0;
+                    let isActive = item.active !== false; 
+                    actionHtml += `<button type="button" class="btn-icon" title="Edit" onclick="editFile('${safeDisplay}', '${safeUrl}', '${priv}', '${dur}', ${isActive})"><i class="fas fa-pen"></i></button> `;
+                }
+                actionHtml += `<button type="button" class="btn-icon" title="Delete" onclick="confirmDelete('${item.key}')" style="color:#ef4444"><i class="fas fa-trash"></i></button>`;
+            }
+            let createdTimeStr = timeAgo(item.created);
+            let mobileUploadTime = `<div class="mobile-upload-time">${createdTimeStr}</div>`;
+            let desktopToggle = isLoggedIn && item.type === 'file' ? toggleHtml : '';
+            tr.innerHTML = `
+                ${mobileUploadTime}
+                <td class="col-icon">${iconHtml}</td>
+                <td class="col-name">${nameHtml}</td>
+                <td class="${viewsClass}">${viewsHtml}</td>
+                <td class="col-status">${statusHtml}</td>
+                <td class="col-time">${timeHtml}</td>
+                <td class="col-link" style="text-align:center">${desktopToggle} ${linkHtml}</td>
+                <td class="col-action">${actionHtml}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+        updateCountdowns();
+    }
+
+    function sortFiles(criteria) {
+        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('sort-' + criteria).classList.add('active');
+        fileData.sort((a, b) => {
+            if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
+            if (criteria === 'newest') {
+                return b.created - a.created;
+            } else if (criteria === 'name_asc') {
+                let nA = a.display_name || a.name;
+                let nB = b.display_name || b.name;
+                return nA.localeCompare(nB);
+            } else if (criteria === 'size_desc') {
+                return (b.size || 0) - (a.size || 0);
+            }
+            return 0;
+        });
+        renderTable(fileData);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderTable(fileData);
+            });
+
+    function handleAuth(e, form) {
+        e.preventDefault();
+        const btn = form.querySelector('button');
+        const oldText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        btn.disabled = true;
+        const formData = new FormData(form);
+        formData.append('ajax_mode', '1');
+        fetch(window.location.href, { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if(res.status === 'success') {
+                    window.location.reload();
+                } else {
+                    const alertDiv = form.previousElementSibling; 
+                    alertDiv.className = 'alert error active';
+                    alertDiv.innerText = res.msg;
+                    btn.innerHTML = oldText;
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                const alertDiv = form.previousElementSibling; 
+                alertDiv.className = 'alert error active';
+                alertDiv.innerText = "Network error";
+                btn.innerHTML = oldText;
+                btn.disabled = false;
+            });
+    }
+
+    function handleGenerateToken(e, form) {
+        e.preventDefault();
+        const btn = form.querySelector('button');
+        const oldIcon = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+        const formData = new FormData(form);
+        formData.append('ajax_mode', '1');
+        fetch(window.location.href, { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                btn.innerHTML = oldIcon;
+                btn.disabled = false;
+                if(res.status === 'success') {
+                    document.getElementById('apiTokenInput').value = res.token;
+                    document.querySelectorAll('.token-ph').forEach(el => el.innerText = res.token);
+                    const alertDiv = document.getElementById('settingsAlert');
+                    alertDiv.className = 'alert success active';
+                    alertDiv.innerText = res.msg;
+                    setTimeout(() => { alertDiv.className = 'alert'; }, 3000);
+                } else {
+                    alert('Error: ' + res.msg);
+                }
+            })
+            .catch(err => {
+                btn.innerHTML = oldIcon;
+                btn.disabled = false;
+                alert('Network Error');
+            });
+    }
+
+    function toggleFile(key, checkbox) {
+        const formData = new FormData();
+        formData.append('action', 'toggle_status');
+        formData.append('key', key);
+        formData.append('ajax_mode', '1');
+        fetch(window.location.href, { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if(res.status !== 'success') {
+                    alert('Error toggling file status');
+                    checkbox.checked = !checkbox.checked; 
+                }
+            })
+            .catch(err => {
+                alert('Network error');
+                checkbox.checked = !checkbox.checked;
+            });
+    }
+
+    function toggleHtmlRender(key, checkbox) {
+        const formData = new FormData();
+        formData.append('action', 'toggle_html_render');
+        formData.append('key', key);
+        formData.append('ajax_mode', '1');
+        fetch(window.location.href, { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if(res.status !== 'success') {
+                    alert('Error toggling HTML render');
+                    checkbox.checked = !checkbox.checked; 
+                }
+            })
+            .catch(err => {
+                alert('Network error');
+                checkbox.checked = !checkbox.checked;
+            });
+    }
+
+    function copyText(text) {
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+        const btn = event.currentTarget;
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check" style="color:var(--green)"></i>';
+        setTimeout(() => btn.innerHTML = original, 1000);
+    }
+
+    function copyCode(btn) {
+        const content = btn.parentElement.nextElementSibling.innerText;
+        const temp = document.createElement("textarea");
+        temp.value = content;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+        
+        const originalText = btn.innerText;
+        btn.innerText = "Copied!";
+        btn.style.color = "#22c55e";
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.color = "";
+        }, 1500);
+    }
+
+    function updateCountdowns() {
+        const now = Math.floor(Date.now() / 1000);
+        document.querySelectorAll('.countdown').forEach(el => {
+            const expire = parseInt(el.getAttribute('data-expire'));
+            let diff = expire - now;
+            if (diff <= 0) { el.innerText = "Expired"; el.style.color = "#ef4444"; el.style.background = "rgba(239, 68, 68, 0.1)"; return; }
+            const h = Math.floor(diff / 3600).toString().padStart(2,'0');
+            const m = Math.floor((diff % 3600) / 60).toString().padStart(2,'0');
+            const s = (diff % 60).toString().padStart(2,'0');
+            el.innerText = `${h}:${m}:${s}`;
+        });
+    }
+    updateCountdowns(); setInterval(updateCountdowns, 1000);
+
+    function runObfuscate() {
+        const content = document.getElementById('fileContent').value;
+        if (!content.trim()) return alert("Content cannot be empty!");
+        const btn = event.currentTarget;
+        const oldHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+        btn.disabled = true;
+        
+        const fd = new FormData();
+        fd.append('action', 'create_obf');
+        fd.append('content', content);
+        fd.append('preset', document.getElementById('obfPreset').value);
+        fd.append('ajax_mode', '1');
+        
+        fetch(window.location.href, { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(res => {
+                if (res.status === 'success') {
+                    if (res.remaining_guest !== -1) {
+                         const bar = document.getElementById('guestLimitBar');
+                         const count = document.getElementById('guestLimitCount');
+                         if(bar && count) {
+                             bar.style.width = (res.remaining_guest / 5 * 100) + '%';
+                             count.innerText = res.remaining_guest;
+                         }
+                    }
+                    document.getElementById('fileContent').value = res.result;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Done';
+                    setTimeout(() => { btn.innerHTML = oldHtml; btn.disabled = false; }, 2000);
+                } else {
+                    alert('Error: ' + res.msg);
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                }
+            })
+            .catch(e => {
+                alert('Network Error');
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+            });
+    }
+
+    function openModal(id) { document.getElementById(id+'Modal').classList.add('active'); }
+    function closeModal(id) { document.getElementById(id+'Modal').classList.remove('active'); }
+    function switchModal(c, o) { 
+        closeModal(c); 
+        document.getElementById(c+'Alert').className = 'alert';
+        setTimeout(()=>openModal(o), 300); 
+    }
+    window.onclick = e => { if(e.target.classList.contains('modal-overlay')) e.target.classList.remove('active'); };
+
+    function confirmSave() {
+        if (!document.getElementById('fileContent').value.trim()) return alert("Content cannot be empty!");
+        const m = document.getElementById('confirmModal');
+        document.getElementById('confirmTitle').innerText = "Save File";
+        document.getElementById('confirmText').innerText = "Do you want to save this file?";
+        const b = document.getElementById('confirmBtnAction'); b.className = "btn btn-primary"; b.innerText="Save Now";
+        b.onclick = () => {
+            b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            document.getElementById('editorForm').submit();
+        };
+        openModal('confirm');
+    }
+
+    function confirmDelete(key) {
+        document.getElementById('confirmTitle').innerText = "Delete File";
+        document.getElementById('confirmText').innerText = "This action cannot be undone. Are you sure?";
+        const b = document.getElementById('confirmBtnAction'); b.className = "btn btn-danger"; b.innerText="Delete Forever";
+        b.onclick = () => { 
+            b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            document.getElementById('deleteKeyInput').value=key; 
+            document.getElementById('deleteForm').submit(); 
+        };
+        openModal('confirm');
+    }
+
+    function loadFile(i) {
+        if(i.files[0]) {
+            let fname = i.files[0].name;
+            if(document.getElementById('fileNameInput')) {
+                const currentVal = document.getElementById('fileNameInput').value;
+                const lastSlash = currentVal.lastIndexOf('/');
+                const prefix = lastSlash !== -1 ? currentVal.substring(0, lastSlash + 1) : '';
+                document.getElementById('fileNameInput').value = prefix + fname;
+            }
+            toggleObf(fname);
+            const r = new FileReader(); r.onload = e => document.getElementById('fileContent').value = e.target.result; r.readAsText(i.files[0]);
+        }
+    }
+
+    function toggleObf(name) {
+        if(!name) return;
+        let isHtml = name.toLowerCase().endsWith('.html') || name.toLowerCase().endsWith('.htm');
+        let btn = document.getElementById('btnObf');
+        let pre = document.getElementById('presetContainer');
+        if(isHtml) {
+            if(btn) btn.style.display = 'none';
+            if(pre) pre.style.visibility = 'hidden'; 
+        } else {
+            if(btn) btn.style.display = '';
+            if(pre) pre.style.visibility = 'visible';
+        }
+    }
+    
+    let nameInput = document.getElementById('fileNameInput');
+    if(nameInput) {
+        nameInput.addEventListener('input', function() {
+            toggleObf(this.value);
+        });
+    }
+
+    function editFile(displayName, url, priv, dur, isActive) {
+        if(document.getElementById('fileNameInput')) {
+            document.getElementById('fileNameInput').value = displayName;
+            document.getElementById('originNameInput').value = displayName;
+        }
+        toggleObf(displayName);
+        if (priv === 'private') document.getElementById('priv_private').checked = true;
+        else document.getElementById('priv_public').checked = true;
+        if (document.getElementById('expireSelect')) document.getElementById('expireSelect').value = dur;
+        
+        if (!isActive) {
+            document.getElementById('fileContent').value = "-- [SYSTEM] Raw Access is currently DISABLED.\n-- Enable it in the file list below to view or edit the content.";
+            window.scrollTo({top:0, behavior:'smooth'});
+            return;
+        }
+
+        const btn = event.currentTarget;
+        const originalIcon = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        fetch(url).then(r => {
+            if(r.status === 403) return "-- Raw Access Denied or Disabled";
+            return r.text();
+        }).then(t => { 
+            document.getElementById('fileContent').value = t; 
+            window.scrollTo({top:0, behavior:'smooth'});
+            btn.innerHTML = originalIcon;
+        }).catch(err => {
+             document.getElementById('fileContent').value = "-- Error loading file";
+             btn.innerHTML = originalIcon;
+        });
+    }
+
+    function copyToClipboard(el) {
+        el.select(); document.execCommand('copy');
+        const old = el.value; el.value = "Copied!"; el.style.color = "#22c55e";
+        setTimeout(() => { el.value = old; el.style.color = ""; }, 1000);
+    }
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"56be62d6e3384635a248c745467d34b6","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
